@@ -1,13 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ExcelDataReader;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using QuanLyYTe.Models;
 using QuanLyYTe.Repositorys;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using ExcelDataReader;
 using System.Data;
 using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.Data.SqlClient;
 
 namespace QuanLyYTe.Controllers
 {
