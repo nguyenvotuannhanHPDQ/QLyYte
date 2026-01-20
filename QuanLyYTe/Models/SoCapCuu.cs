@@ -59,5 +59,13 @@ namespace QuanLyYTe.Models
         public string? KetQuaKT_SK { get; set; }
         public string? GhiChu { get; set; }
 
+        // ======================
+        // FILE KHÁM SỨC KHỎE
+        // ======================
+        public string? FileKhamSucKhoePath { get; set; }   // vd: /uploads/ksk/2025/ksk_123.pdf
+        public string? FileKhamSucKhoeName { get; set; }   // ksk_nguyenvana.pdf
+        public long? FileKhamSucKhoeSize { get; set; }     // bytes
+        public string? FileKhamSucKhoeType { get; set; }   // application/pdf
+
     }
 }

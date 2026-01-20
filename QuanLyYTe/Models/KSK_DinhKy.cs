@@ -40,5 +40,14 @@ namespace QuanLyYTe.Models
 
         public string? KetLuanKSK { get; set; }
         public DateTime? NgayKSK { get; set; }
+
+        // ======================
+        // FILE KHÁM SỨC KHỎE
+        // ======================
+        public string? FileKhamSucKhoePath { get; set; }   // vd: /uploads/ksk/2025/ksk_123.pdf
+        public string? FileKhamSucKhoeName { get; set; }   // ksk_nguyenvana.pdf
+        public long? FileKhamSucKhoeSize { get; set; }     // bytes
+        public string? FileKhamSucKhoeType { get; set; }   // application/pdf
+
     }
 }
