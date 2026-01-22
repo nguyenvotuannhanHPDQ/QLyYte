@@ -1,12 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ClosedXML.Excel;
+using ExcelDataReader;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using QuanLyYTe.Models;
+using QuanLyYTe.Models.ViewModels;
 using QuanLyYTe.Repositorys;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using ExcelDataReader;
+using QuanLyYTe.Services.Interfaces;
 using System.Data;
-using ClosedXML.Excel;
-using Microsoft.AspNetCore.Hosting;
 
 namespace QuanLyYTe.Controllers
 {
@@ -14,10 +15,13 @@ namespace QuanLyYTe.Controllers
     {
         private readonly DataContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        public KSK_ChuyenViTriController(DataContext _context, IWebHostEnvironment webHostEnvironment)
+        private readonly IFileStorageService _fileStorageService;
+
+        public KSK_ChuyenViTriController(DataContext _context, IWebHostEnvironment webHostEnvironment, IFileStorageService fileStorageService)
         {
             this._context = _context;
             _webHostEnvironment = webHostEnvironment;
+            _fileStorageService = fileStorageService;
         }
         public async Task<IActionResult> Index(string search, int page = 1)
         {
@@ -30,6 +34,8 @@ namespace QuanLyYTe.Controllers
                              from vt in ulist4.DefaultIfEmpty()
                              join ld in _context.LyDoKhongDat on a.LyDoKhongDat equals ld.ID_LyDo into ulist5
                              from ld in ulist5.DefaultIfEmpty()
+                             join vts in _context.ViTriLamViec on a.ID_ViTri_ChuyenDen equals vts.ID_ViTri into ulist6
+                             from vts in ulist6.DefaultIfEmpty()
                              select new KSK_ChuyenViTri
                              {
                                  ID_KSK_CVT = a.ID_KSK_CVT,
@@ -40,6 +46,7 @@ namespace QuanLyYTe.Controllers
                                  TenPhongBan = bp.TenPhongBan,
                                  TenKip = k.TenKip,
                                  TenViTri = vt.TenViTri,
+                                 TenViTriSauKhiChuyen = vts.TenViTri,
                                  NgayKham = (DateTime?)a.NgayKham ?? default,
                                  Dat = a.Dat,
                                  KhongDat = a.KhongDat,
@@ -96,7 +103,8 @@ namespace QuanLyYTe.Controllers
                                  KhongDat = a.KhongDat,
                                  LyDoKhongDat = (int?)a.LyDoKhongDat ?? default,
                                  TenLyDoKhongDat = ld.TenLyDo,
-                                 GhiChu = a.GhiChu
+                                 GhiChu = a.GhiChu,
+                                 FileKhamSucKhoePath = a.FileKhamSucKhoePath
                              }).ToListAsync();
             var id_nv = _context.NhanVien.Where(x => x.ID_NV == ID_NV).FirstOrDefault();
             if (id_nv != null)
@@ -217,6 +225,8 @@ namespace QuanLyYTe.Controllers
                             }
                             string ViTri = serviceDetails.Rows[i][3].ToString().Trim();
                             var check_vitri = _context.ViTriLamViec.Where(x => x.TenViTri == ViTri).FirstOrDefault();
+                            string viTriChuyenDen = serviceDetails.Rows[i][4].ToString().Trim();
+                            var check_viTriChuyenDen = _context.ViTriLamViec.Where(x => x.TenViTri == viTriChuyenDen).FirstOrDefault();
                             if (check_vitri == null)
                             {
                                 TempData["msgSuccess"] = "<script>alert('Vui lòng kiểm tra vị trí. Nhân viên: " + MNV + "');</script>";
@@ -224,33 +234,40 @@ namespace QuanLyYTe.Controllers
                                 return RedirectToAction("Index", "KSK_ChuyenViTri");
                             }
 
-                            string Dat = serviceDetails.Rows[i][4].ToString().Trim();
-                            string KhongDat = serviceDetails.Rows[i][5].ToString().Trim();
-                            string LyDoKhongDat = serviceDetails.Rows[i][6].ToString().Trim();
+                            if (check_viTriChuyenDen == null)
+                            {
+                                TempData["msgSuccess"] = "<script>alert('Vui lòng kiểm tra vị trí chuyển đến. Nhân viên: " + MNV + "');</script>";
+
+                                return RedirectToAction("Index", "KSK_ChuyenViTri");
+                            }
+
+                            string Dat = serviceDetails.Rows[i][5].ToString().Trim();
+                            string KhongDat = serviceDetails.Rows[i][6].ToString().Trim();
+                            string LyDoKhongDat = serviceDetails.Rows[i][7].ToString().Trim();
                             var check_ld = _context.LyDoKhongDat.Where(x=>x.TenLyDo == LyDoKhongDat).FirstOrDefault();
                             if(check_ld ==  null && KhongDat != "")
                             {
                                 TempData["msgSuccess"] = "<script>alert('Vui lòng kiểm tra lý do không đạt: " + check_nv.HoTen + "');</script>";
                                 return RedirectToAction("Index", "KSK_ChuyenViTri");
-                            }    
-                           
-                            string Ngay_Kham = serviceDetails.Rows[i][7].ToString().Trim();
+                            }
+                            
+                            string Ngay_Kham = serviceDetails.Rows[i][8].ToString().Trim();
                             DateTime NgayKham = DateTime.ParseExact(Ngay_Kham, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None);
-                            string GhiChu = serviceDetails.Rows[i][8].ToString().Trim();
+                            string GhiChu = serviceDetails.Rows[i][9].ToString().Trim();
                             var check_ = _context.KSK_ChuyenViTri.Where(x => x.ID_NV == check_nv.ID_NV && x.NgayKham == NgayKham).FirstOrDefault();
                             if( check_ == null)
                             {
                                 if (Dat != "")
                                 {
 
-                                    var result = _context.Database.ExecuteSqlRaw("EXEC KSK_ChuyenViTri_insert {0},{1},{2},{3},{4},{5},{6}",
-                                                                                  check_nv.ID_NV, check_vitri.ID_ViTri, NgayKham, Dat, KhongDat, null, GhiChu);
+                                    var result = _context.Database.ExecuteSqlRaw("EXEC KSK_ChuyenViTri_insert {0},{1},{2},{3},{4},{5},{6},{7}",
+                                                                                  check_nv.ID_NV, check_vitri.ID_ViTri, NgayKham, Dat, KhongDat, null, GhiChu, check_viTriChuyenDen.ID_ViTri);
                                 }
                                 else
                                 {
 
-                                    var result = _context.Database.ExecuteSqlRaw("EXEC KSK_ChuyenViTri_insert {0},{1},{2},{3},{4},{5},{6}",
-                                                                                  check_nv.ID_NV, check_vitri.ID_ViTri, NgayKham, Dat, KhongDat, check_ld.ID_LyDo, GhiChu);
+                                    var result = _context.Database.ExecuteSqlRaw("EXEC KSK_ChuyenViTri_insert {0},{1},{2},{3},{4},{5},{6},{7}",
+                                                                                  check_nv.ID_NV, check_vitri.ID_ViTri, NgayKham, Dat, KhongDat, check_ld.ID_LyDo, GhiChu, check_viTriChuyenDen.ID_ViTri);
                                 }
                             }    
                             else
@@ -298,6 +315,8 @@ namespace QuanLyYTe.Controllers
                              from k in ulist3.DefaultIfEmpty()
                              join vt in _context.ViTriLamViec on a.ID_ViTri equals vt.ID_ViTri into ulist4
                              from vt in ulist4.DefaultIfEmpty()
+                             join vts in _context.ViTriLamViec on a.ID_ViTri_ChuyenDen equals vts.ID_ViTri into ulist5
+                             from vts in ulist5.DefaultIfEmpty()
                              select new KSK_ChuyenViTri
                              {
                                  ID_KSK_CVT = a.ID_KSK_CVT,
@@ -313,7 +332,9 @@ namespace QuanLyYTe.Controllers
                                  Dat = a.Dat,
                                  KhongDat = a.KhongDat,
                                  LyDoKhongDat = a.LyDoKhongDat,
-                                 GhiChu = a.GhiChu
+                                 GhiChu = a.GhiChu,
+                                 ID_ViTri_ChuyenDen = a.ID_ViTri_ChuyenDen,
+                                 TenViTriSauKhiChuyen = vts.TenViTri
                              }).ToListAsync();
 
             KSK_ChuyenViTri DO = new KSK_ChuyenViTri();
@@ -329,6 +350,7 @@ namespace QuanLyYTe.Controllers
                     DO.KhongDat = a.KhongDat;
                     DO.LyDoKhongDat = a.LyDoKhongDat;
                     DO.GhiChu = a.GhiChu;
+                    DO.ID_ViTri_ChuyenDen = a.ID_ViTri_ChuyenDen;
                 }
 
                 var NhanVien = (from nv in _context.NhanVien
@@ -354,8 +376,6 @@ namespace QuanLyYTe.Controllers
                 return NotFound();
             }
 
-
-
             return PartialView(DO);
         }
         [HttpPost]
@@ -366,13 +386,13 @@ namespace QuanLyYTe.Controllers
             {
                 if(_DO.LyDoKhongDat == 0 || _DO.LyDoKhongDat == null)
                 {
-                    var result = _context.Database.ExecuteSqlRaw("EXEC KSK_ChuyenViTri_update {0},{1},{2},{3},{4},{5},{6},{7}",
-                                                                                       _DO.ID_KSK_CVT, _DO.ID_NV, _DO.ID_ViTri, _DO.NgayKham, _DO.Dat, _DO.KhongDat, null, _DO.GhiChu);
+                    var result = _context.Database.ExecuteSqlRaw("EXEC KSK_ChuyenViTri_update {0},{1},{2},{3},{4},{5},{6},{7}, {8}",
+                                                                                       _DO.ID_KSK_CVT, _DO.ID_NV, _DO.ID_ViTri, _DO.NgayKham, _DO.Dat, _DO.KhongDat, null, _DO.GhiChu, _DO.ID_ViTri_ChuyenDen);
                 }    
                 else 
                 {
-                    var result = _context.Database.ExecuteSqlRaw("EXEC KSK_ChuyenViTri_update {0},{1},{2},{3},{4},{5},{6},{7}",
-                                                                                       _DO.ID_KSK_CVT, _DO.ID_NV, _DO.ID_ViTri, _DO.NgayKham, _DO.Dat, _DO.KhongDat, _DO.LyDoKhongDat, _DO.GhiChu);
+                    var result = _context.Database.ExecuteSqlRaw("EXEC KSK_ChuyenViTri_update {0},{1},{2},{3},{4},{5},{6},{7}, {8}",
+                                                                                       _DO.ID_KSK_CVT, _DO.ID_NV, _DO.ID_ViTri, _DO.NgayKham, _DO.Dat, _DO.KhongDat, _DO.LyDoKhongDat, _DO.GhiChu, _DO.ID_ViTri_ChuyenDen);
                 }    
 
                 TempData["msgSuccess"] = "<script>alert('Chỉnh sửa thành công');</script>";
@@ -401,6 +421,83 @@ namespace QuanLyYTe.Controllers
 
 
             return RedirectToAction("Index", "KSK_ChuyenViTri", new { page = page });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadFileKham(KSKChuyenViTriUploadVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["msgError"] = "<script>alert('Dữ liệu không hợp lệ');</script>";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var entity = await _context.KSK_ChuyenViTri
+                .FirstOrDefaultAsync(x => x.ID_KSK_CVT == model.ID_KSK_CVT);
+
+            if (entity == null)
+            {
+                TempData["msgError"] = "<script>alert('Không tìm thấy hồ sơ');</script>";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var uploadResult = await _fileStorageService.UploadAsync(
+                model.FileKhamSucKhoe,
+                folder: "uploads/ksk",
+                maxSizeInBytes: 10 * 1024 * 1024 // 10MB
+            );
+
+            if (!uploadResult.Success)
+            {
+                TempData["msgError"] = uploadResult.ErrorMessage;
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Xóa file cũ SAU KHI upload file mới thành công
+            if (!string.IsNullOrEmpty(entity.FileKhamSucKhoePath))
+            {
+                _fileStorageService.Delete(entity.FileKhamSucKhoePath);
+            }
+
+            entity.FileKhamSucKhoePath = uploadResult.FilePath;
+            entity.FileKhamSucKhoeName = uploadResult.FileName;
+            entity.FileKhamSucKhoeSize = uploadResult.FileSize;
+            entity.FileKhamSucKhoeType = uploadResult.ContentType;
+
+            await _context.SaveChangesAsync();
+
+            TempData["msgSuccess"] = "<script>alert('Upload hồ sơ khám sức khỏe thành công');</script>";
+
+            return RedirectToAction("Deatail", "KSK_ChuyenViTri", new { ID_NV = entity.ID_NV });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DownloadFileKham(int id)
+        {
+            var entity = await _context.KSK_ChuyenViTri
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ID_KSK_CVT == id);
+
+            if (entity == null || string.IsNullOrEmpty(entity.FileKhamSucKhoePath))
+            {
+                TempData["msgError"] = "<script>alert('File không tồn tại');</script>";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var fileResult = _fileStorageService.GetFile(entity.FileKhamSucKhoePath);
+
+            if (!fileResult.Success)
+            {
+                TempData["msgError"] = fileResult.ErrorMessage;
+                return RedirectToAction(nameof(Index));
+            }
+
+            return File(
+                fileResult.FileBytes!,
+                entity.FileKhamSucKhoeType ?? "application/octet-stream",
+                entity.FileKhamSucKhoeName ?? "file"
+            );
         }
     }
 }

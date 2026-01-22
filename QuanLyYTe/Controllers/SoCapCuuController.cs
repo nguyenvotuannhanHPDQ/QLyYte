@@ -10,6 +10,9 @@ using DocumentFormat.OpenXml.VariantTypes;
 using Microsoft.Data.SqlClient;
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Hosting;
+using QuanLyYTe.Models.ViewModels;
+using QuanLyYTe.Services.Interfaces;
+using QuanLyYTe.Services.Implementions;
 
 namespace QuanLyYTe.Controllers
 {
@@ -17,10 +20,12 @@ namespace QuanLyYTe.Controllers
     {
         private readonly DataContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        public SoCapCuuController(DataContext _context, IWebHostEnvironment webHostEnvironment)
+        private readonly IFileStorageService _fileStorageService;
+        public SoCapCuuController(DataContext _context, IWebHostEnvironment webHostEnvironment, IFileStorageService fileStorageService)
         {
             this._context = _context;
             _webHostEnvironment = webHostEnvironment;
+            _fileStorageService = fileStorageService;
         }
         public async Task<IActionResult> Index(string search, int page = 1)
         {
@@ -86,7 +91,6 @@ namespace QuanLyYTe.Controllers
 
             return View(data);
 
-
         }
         public async Task<IActionResult> Deatail(int? ID_NV, int page = 1)
         {
@@ -134,7 +138,8 @@ namespace QuanLyYTe.Controllers
                                  TongChiPhi = a.TongChiPhi,
                                  KhongCanKT_SK = a.KhongCanKT_SK,
                                  KetQuaKT_SK = a.KetQuaKT_SK,
-                                 GhiChu = a.GhiChu
+                                 GhiChu = a.GhiChu,
+                                 FileKhamSucKhoePath = a.FileKhamSucKhoePath
                              }).ToListAsync();
             var id_nv = _context.NhanVien.Where(x => x.ID_NV == ID_NV).FirstOrDefault();
             if (id_nv != null)
@@ -303,18 +308,31 @@ namespace QuanLyYTe.Controllers
                                 return RedirectToAction("Index", "SoCapCuu");
                             }
                             int gt = (serviceDetails.Rows[i][4].ToString().Trim().ToLower().Equals("nam")) ? 1 : 2;
-                            string ThoiGianTiepNhan = serviceDetails.Rows[i][5].ToString();
 
-                            string ThoiGianCapCuu = serviceDetails.Rows[i][6].ToString();
+                            string viTriCongViec = serviceDetails.Rows[i][5].ToString();
 
-                            string TaiNan = serviceDetails.Rows[i][7].ToString().Trim();
+                            string donVi = serviceDetails.Rows[i][6].ToString();
+
+                            string viTriTaiNan = serviceDetails.Rows[i][7].ToString();
+
+                            string chiTietTaiNan = serviceDetails.Rows[i][8].ToString();
+
+                            string maSoTaiNan = serviceDetails.Rows[i][9].ToString();
+
+                            string nguoiPhuTrachVuViec = serviceDetails.Rows[i][10].ToString();
+
+                            string ThoiGianTiepNhan = serviceDetails.Rows[i][11].ToString();
+
+                            string ThoiGianCapCuu = serviceDetails.Rows[i][12].ToString();
+
+                            string TaiNan = serviceDetails.Rows[i][13].ToString().Trim();
                             var check_tn = _context.NhomTaiNan.Where(x=>x.TenNhomTaiNan == TaiNan).FirstOrDefault();
                             if(check_tn == null && TaiNan != "")
                             {
                                 TempData["msgSuccess"] = "<script>alert('Vui lòng kiểm tra nhóm tai nạn: " + MaNV + "');</script>";
                                 return RedirectToAction("Index", "SoCapCuu");
                             }
-                            string BenhLy = serviceDetails.Rows[i][8].ToString().Trim();
+                            string BenhLy = serviceDetails.Rows[i][14].ToString().Trim();
                             var check_bl = _context.NhomBenhLy.Where(x=>x.TenBenhLy == BenhLy).FirstOrDefault();
                             if(check_bl == null && BenhLy != "")
                             {
@@ -322,49 +340,49 @@ namespace QuanLyYTe.Controllers
                                 return RedirectToAction("Index", "SoCapCuu");
                             }
 
-                            string DienBien = serviceDetails.Rows[i][9].ToString().Trim();
+                            string DienBien = serviceDetails.Rows[i][15].ToString().Trim();
 
-                            string PhanLoaiNT = serviceDetails.Rows[i][10].ToString().Trim();
+                            string PhanLoaiNT = serviceDetails.Rows[i][16].ToString().Trim();
 
-                            string YeuToGayTaiNan = serviceDetails.Rows[i][11].ToString().Trim();
+                            string YeuToGayTaiNan = serviceDetails.Rows[i][17].ToString().Trim();
 
-                            string XuLyCapCuu = serviceDetails.Rows[i][12].ToString().Trim();
+                            string XuLyCapCuu = serviceDetails.Rows[i][18].ToString().Trim();
 
-                            string ThoiGian = serviceDetails.Rows[i][13].ToString().Trim();
+                            string ThoiGian = serviceDetails.Rows[i][19].ToString().Trim();
 
                             int ThoiGianNghiViec = Convert.ToInt32(ThoiGian);
 
-                            string KetQuaGiamDinh = serviceDetails.Rows[i][14].ToString().Trim();
+                            string KetQuaGiamDinh = serviceDetails.Rows[i][20].ToString().Trim();
 
-                            string SoDienThoai = serviceDetails.Rows[i][15].ToString().Trim();
+                            string SoDienThoai = serviceDetails.Rows[i][21].ToString().Trim();
 
-                            string BienBan24h = serviceDetails.Rows[i][16].ToString().Trim();
+                            string BienBan24h = serviceDetails.Rows[i][22].ToString().Trim();
 
-                            string TongChiPhi = serviceDetails.Rows[i][17].ToString().Trim();
+                            string TongChiPhi = serviceDetails.Rows[i][23].ToString().Trim();
 
-                            string KhongCanKT_SK = serviceDetails.Rows[i][18].ToString().Trim();
+                            string KhongCanKT_SK = serviceDetails.Rows[i][24].ToString().Trim();
 
-                            string KetQuaKT_SK = serviceDetails.Rows[i][19].ToString().Trim();
+                            string KetQuaKT_SK = serviceDetails.Rows[i][25].ToString().Trim();
 
-                            string GhiChu = serviceDetails.Rows[i][20].ToString().Trim();
+                            string GhiChu = serviceDetails.Rows[i][26].ToString().Trim();
 
                             if(check_tn == null)
                             {
-                                var result = _context.Database.ExecuteSqlRaw("EXEC SoCapCuu_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18}",
+                                var result = _context.Database.ExecuteSqlRaw("EXEC SoCapCuu_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24}",
                                                                      NgayThangNam, check_nv.ID_NV,gt, ThoiGianTiepNhan, ThoiGianCapCuu, null, check_bl.ID_BenhLy, DienBien, PhanLoaiNT, YeuToGayTaiNan, XuLyCapCuu,
-                                                                     ThoiGianNghiViec, KetQuaGiamDinh, SoDienThoai, BienBan24h,TongChiPhi, KhongCanKT_SK, KetQuaKT_SK, GhiChu);
+                                                                     ThoiGianNghiViec, KetQuaGiamDinh, SoDienThoai, BienBan24h,TongChiPhi, KhongCanKT_SK, KetQuaKT_SK, GhiChu, viTriCongViec, donVi, viTriTaiNan, chiTietTaiNan, maSoTaiNan, nguoiPhuTrachVuViec);
                             }    
                             else if(check_bl == null)
                             {
-                                var result = _context.Database.ExecuteSqlRaw("EXEC SoCapCuu_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18}",
+                                var result = _context.Database.ExecuteSqlRaw("EXEC SoCapCuu_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24}",
                                                                      NgayThangNam, check_nv.ID_NV, gt,  ThoiGianTiepNhan, ThoiGianCapCuu, check_tn.ID_NhomTaiNan, null, DienBien, PhanLoaiNT, YeuToGayTaiNan, XuLyCapCuu,
-                                                                     ThoiGianNghiViec, KetQuaGiamDinh, SoDienThoai, BienBan24h,TongChiPhi, KhongCanKT_SK, KetQuaKT_SK, GhiChu);
+                                                                     ThoiGianNghiViec, KetQuaGiamDinh, SoDienThoai, BienBan24h,TongChiPhi, KhongCanKT_SK, KetQuaKT_SK, GhiChu, viTriCongViec, donVi, viTriTaiNan, chiTietTaiNan, maSoTaiNan, nguoiPhuTrachVuViec);
                             } 
                             else if(check_tn != null && check_tn != null)
                             {
-                                var result = _context.Database.ExecuteSqlRaw("EXEC SoCapCuu_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18}",
+                                var result = _context.Database.ExecuteSqlRaw("EXEC SoCapCuu_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24}",
                                                                      NgayThangNam, check_nv.ID_NV, gt, ThoiGianTiepNhan, ThoiGianCapCuu, check_tn.ID_NhomTaiNan, check_bl.ID_BenhLy, DienBien, PhanLoaiNT, YeuToGayTaiNan, XuLyCapCuu,
-                                                                     ThoiGianNghiViec, KetQuaGiamDinh, SoDienThoai, BienBan24h, TongChiPhi, KhongCanKT_SK, KetQuaKT_SK, GhiChu);
+                                                                     ThoiGianNghiViec, KetQuaGiamDinh, SoDienThoai, BienBan24h, TongChiPhi, KhongCanKT_SK, KetQuaKT_SK, GhiChu, viTriCongViec, donVi, viTriTaiNan, chiTietTaiNan, maSoTaiNan, nguoiPhuTrachVuViec);
                             }    
                          
                         }
@@ -499,6 +517,83 @@ namespace QuanLyYTe.Controllers
 
 
             return RedirectToAction("Index", "SoCapCuu");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadFileKham(KSKSoCapCuuUploadVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["msgError"] = "<script>alert('Dữ liệu không hợp lệ');</script>";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var entity = await _context.SoCapCuu
+                .FirstOrDefaultAsync(x => x.ID_SCC == model.ID_SCC);
+
+            if (entity == null)
+            {
+                TempData["msgError"] = "<script>alert('Không tìm thấy hồ sơ');</script>";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var uploadResult = await _fileStorageService.UploadAsync(
+                model.FileKhamSucKhoe,
+                folder: "uploads/ksk",
+                maxSizeInBytes: 10 * 1024 * 1024 // 10MB
+            );
+
+            if (!uploadResult.Success)
+            {
+                TempData["msgError"] = uploadResult.ErrorMessage;
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Xóa file cũ SAU KHI upload file mới thành công
+            if (!string.IsNullOrEmpty(entity.FileKhamSucKhoePath))
+            {
+                _fileStorageService.Delete(entity.FileKhamSucKhoePath);
+            }
+
+            entity.FileKhamSucKhoePath = uploadResult.FilePath;
+            entity.FileKhamSucKhoeName = uploadResult.FileName;
+            entity.FileKhamSucKhoeSize = uploadResult.FileSize;
+            entity.FileKhamSucKhoeType = uploadResult.ContentType;
+
+            await _context.SaveChangesAsync();
+
+            TempData["msgSuccess"] = "<script>alert('Upload hồ sơ khám sức khỏe thành công');</script>";
+
+            return RedirectToAction("Deatail", "SoCapCuu", new { ID_NV = entity.ID_NV });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DownloadFileKham(int id)
+        {
+            var entity = await _context.SoCapCuu
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ID_SCC == id);
+
+            if (entity == null || string.IsNullOrEmpty(entity.FileKhamSucKhoePath))
+            {
+                TempData["msgError"] = "<script>alert('File không tồn tại');</script>";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var fileResult = _fileStorageService.GetFile(entity.FileKhamSucKhoePath);
+
+            if (!fileResult.Success)
+            {
+                TempData["msgError"] = fileResult.ErrorMessage;
+                return RedirectToAction(nameof(Index));
+            }
+
+            return File(
+                fileResult.FileBytes!,
+                entity.FileKhamSucKhoeType ?? "application/octet-stream",
+                entity.FileKhamSucKhoeName ?? "file"
+            );
         }
     }
 }

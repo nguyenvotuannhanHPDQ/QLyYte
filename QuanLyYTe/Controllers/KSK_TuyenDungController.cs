@@ -82,7 +82,7 @@ public class KSK_TuyenDungController : Controller
                              ID_KSK_DV = a.ID_KSK_DV,
                              HoVaTen = a.HoVaTen,
                              NgaySinh = a.NgaySinh,
-                             CCCD = a.CCCD,
+                             CCCD = string.IsNullOrEmpty(a.CCCD) ? "" : a.CCCD,
                              ID_GioiTinh = (int)a.ID_GioiTinh,
                              TenGioiTinh = gt.TenGioiTinh,
                              TDHV = a.TDHV,
@@ -94,7 +94,8 @@ public class KSK_TuyenDungController : Controller
                              ID_LyDo = (int?)a.ID_LyDo ?? default,
                              TenLyDo = ld.TenLyDo ?? default,
                              NgayKham = a.NgayKham,
-                             GhiChu = a.GhiChu
+                             GhiChu = a.GhiChu,
+                             MaNhanVienSauNhanViec = string.IsNullOrEmpty(a.MaNhanVienSauNhanViec) ? "" : a.MaNhanVienSauNhanViec,
                          }).ToListAsync();
         ViewBag.ID_NV = search;
         const int pageSize = 10;
@@ -180,7 +181,8 @@ public class KSK_TuyenDungController : Controller
                              ID_LyDo = (int?)a.ID_LyDo ?? default,
                              NgayKham = a.NgayKham,
                              GhiChu = a.GhiChu,
-                             Page = (int)page
+                             Page = (int)page,
+                             MaNhanVienSauNhanViec = a.MaNhanVienSauNhanViec
                          }).ToListAsync();
 
         KSK_DauVao DO = new KSK_DauVao();
@@ -202,6 +204,7 @@ public class KSK_TuyenDungController : Controller
                 DO.NgayKham = a.NgayKham;
                 DO.GhiChu = a.GhiChu;
                 DO.Page = (int)page;
+                DO.MaNhanVienSauNhanViec = a.MaNhanVienSauNhanViec;
             }
 
             List<GioiTinh> gt = _context.GioiTinh.ToList();
@@ -224,8 +227,6 @@ public class KSK_TuyenDungController : Controller
             return NotFound();
         }
 
-
-
         return PartialView(DO);
     }
     [HttpPost]
@@ -234,10 +235,9 @@ public class KSK_TuyenDungController : Controller
     {
         try
         {
-
-            var result = _context.Database.ExecuteSqlRaw("EXEC KSK_DauVao_update {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", id,
+            var result = _context.Database.ExecuteSqlRaw("EXEC KSK_DauVao_update {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}, {13}", id,
                                                         _DO.HoVaTen, _DO.NgaySinh, _DO.CCCD, _DO.ID_GioiTinh, _DO.TDHV, _DO.TDCM, _DO.NgheNghiep,
-                                                        _DO.HoKhau, _DO.ID_KetQuaDV, _DO.ID_LyDo, _DO.NgayKham, _DO.GhiChu);
+                                                        _DO.HoKhau, _DO.ID_KetQuaDV, _DO.ID_LyDo, _DO.NgayKham, _DO.GhiChu, _DO.MaNhanVienSauNhanViec);
 
             TempData["msgSuccess"] = "<script>alert('Chỉnh sửa thành công');</script>";
         }
@@ -246,9 +246,7 @@ public class KSK_TuyenDungController : Controller
             TempData["msgError"] = "<script>alert('Chính sửa thất bại');</script>";
         }
 
-     
-
-        return RedirectToAction("Index", "KSK_TuyenDung" ,new { page = _DO.Page });
+        return RedirectToAction("Deatail", "KSK_TuyenDung" ,new { page = _DO.Page, search = _DO.CCCD });
     }
 
     public async Task<IActionResult> Delete(int id, int? page)

@@ -11,16 +11,20 @@ using Microsoft.Data.SqlClient;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Hosting;
+using QuanLyYTe.Models.ViewModels;
+using QuanLyYTe.Services.Interfaces;
 namespace QuanLyYTe.Controllers
 {
     public class KSK_DinhKyController : Controller
     {
         private readonly DataContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        public KSK_DinhKyController(DataContext _context, IWebHostEnvironment webHostEnvironment)
+        private readonly IFileStorageService _fileStorageService;
+        public KSK_DinhKyController(DataContext _context, IWebHostEnvironment webHostEnvironment, IFileStorageService fileStorageService)
         {
             this._context = _context;
             _webHostEnvironment = webHostEnvironment;
+            _fileStorageService = fileStorageService;
         }
         public async Task<IActionResult> Index(DateTime? begind, DateTime? endd, int? IDPhongBan, int page = 1)
         {
@@ -120,7 +124,8 @@ namespace QuanLyYTe.Controllers
                                  ID_PhanLoaiKSK = a.ID_PhanLoaiKSK,
                                  TenLoaiKSK = l.TenLoaiKSK,
                                  KetLuanKSK = a.KetLuanKSK,
-                                 NgayKSK = (DateTime)a.NgayKSK
+                                 NgayKSK = (DateTime)a.NgayKSK,
+                                 FileKhamSucKhoePath = a.FileKhamSucKhoePath
 
                              }).ToListAsync();
             var id_nv = _context.NhanVien.Where(x => x.ID_NV == ID_NV).FirstOrDefault();
@@ -476,6 +481,83 @@ namespace QuanLyYTe.Controllers
 
             }
 
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadFileKham(KSKDinhKyUploadVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["msgError"] = "<script>alert('Dữ liệu không hợp lệ');</script>";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var entity = await _context.KSK_DinhKy
+                .FirstOrDefaultAsync(x => x.ID_KSK_DK == model.ID_KSK_DK);
+
+            if (entity == null)
+            {
+                TempData["msgError"] = "<script>alert('Không tìm thấy hồ sơ');</script>";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var uploadResult = await _fileStorageService.UploadAsync(
+                model.FileKhamSucKhoe,
+                folder: "uploads/ksk",
+                maxSizeInBytes: 10 * 1024 * 1024 // 10MB
+            );
+
+            if (!uploadResult.Success)
+            {
+                TempData["msgError"] = uploadResult.ErrorMessage;
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Xóa file cũ SAU KHI upload file mới thành công
+            if (!string.IsNullOrEmpty(entity.FileKhamSucKhoePath))
+            {
+                _fileStorageService.Delete(entity.FileKhamSucKhoePath);
+            }
+
+            entity.FileKhamSucKhoePath = uploadResult.FilePath;
+            entity.FileKhamSucKhoeName = uploadResult.FileName;
+            entity.FileKhamSucKhoeSize = uploadResult.FileSize;
+            entity.FileKhamSucKhoeType = uploadResult.ContentType;
+
+            await _context.SaveChangesAsync();
+
+            TempData["msgSuccess"] = "<script>alert('Upload hồ sơ khám sức khỏe thành công');</script>";
+
+            return RedirectToAction("Deatail", "KSK_DinhKy", new { ID_NV = entity.ID_NV });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DownloadFileKham(int id)
+        {
+            var entity = await _context.KSK_DinhKy
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ID_KSK_DK == id);
+
+            if (entity == null || string.IsNullOrEmpty(entity.FileKhamSucKhoePath))
+            {
+                TempData["msgError"] = "<script>alert('File không tồn tại');</script>";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var fileResult = _fileStorageService.GetFile(entity.FileKhamSucKhoePath);
+
+            if (!fileResult.Success)
+            {
+                TempData["msgError"] = fileResult.ErrorMessage;
+                return RedirectToAction(nameof(Index));
+            }
+
+            return File(
+                fileResult.FileBytes!,
+                entity.FileKhamSucKhoeType ?? "application/octet-stream",
+                entity.FileKhamSucKhoeName ?? "file"
+            );
         }
     }
 }
