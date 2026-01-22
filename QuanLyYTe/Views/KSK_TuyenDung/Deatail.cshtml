@@ -72,6 +72,8 @@
                                                 <th width="150px" rowspan="2" class="text-center" style="vertical-align:middle">Họ và tên</th>
                                                 <th width="100px" rowspan="2" class="text-center" style="vertical-align:middle">Ngày sinh</th>
                                                 <th width="100px" rowspan="2" class="text-center" style="vertical-align:middle">Giới tính</th>
+                                                <th width="100px" rowspan="2" class="text-center" style="vertical-align:middle">CCCD/CMND</th>
+                                                <th width="100px" rowspan="2" class="text-center" style="vertical-align:middle">MNV sau nhận việc</th>
                                                 <th width="200px" rowspan="2" class="text-center" style="vertical-align:middle">Nghề nghiệp</th>
                                                 <th width="250px" rowspan="2" class="text-center" style="vertical-align:middle">Hộ khẩu</th>
                                                 <th width="10px" colspan="3" class="text-center" style="vertical-align:middle">Kết quả</th>
@@ -109,6 +111,8 @@
                                                         @NS.ToString("dd/MM/yyyy")
                                                     </td>
                                                     <td class="text-center">@item.TenGioiTinh</td>
+                                                    <td class="text-center">@item.CCCD</td>
+                                                    <td class="text-center">@item.MaNhanVienSauNhanViec</td>
                                                     <td> @item.NgheNghiep</td>
                                                     <td> @item.HoKhau</td>
                                                     @if (item.ID_KetQuaDV == 1)

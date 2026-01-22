@@ -57,6 +57,26 @@
                         <table class="table table-bordered table-hover" id="table" width="100%" cellpadding="0">
                             <thead>
                                 <tr>
+                                    <th class="text-center">Vị Trí làm việc sau khi chuyển</th>
+                                </tr>
+
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        @Html.DropDownListFor(model => model.ID_ViTri_ChuyenDen, ViewBag.VTList as SelectList, "---- Chọn vị trí----", new { @style = "text-align: center;", @id = "ID_ViTri_ChuyenDen", @class = "form-control" })
+                                        @Html.ValidationMessageFor(model => model.ID_ViTri_ChuyenDen, "", new { @class = "text-danger" })
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 " style="text-align: center;">
+                        <table class="table table-bordered table-hover" id="table" width="100%" cellpadding="0">
+                            <thead>
+                                <tr>
                                     <th class="text-center">Ngày khám</th>
                                 </tr>
 
@@ -174,7 +194,7 @@
     $("#ID_NV").chosen({
         width: "100%"
     });
-    $("#ID_ViTri").chosen({
+    $("#ID_ViTri, #ID_ViTri_ChuyenDen").chosen({
         width: "100%"
     });
     $("#LyDoKhongDat").chosen({

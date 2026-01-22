@@ -88,7 +88,8 @@
                                                 <th width="150px" rowspan="2" class="text-center" style="vertical-align:middle">Mã nhân viên</th>
                                                 <th width="150px" rowspan="2" class="text-center" style="vertical-align:middle">Họ và tên</th>
                                                 <th width="100px" rowspan="2" class="text-center" style="vertical-align:middle">Ngày sinh</th>
-                                                <th width="200px" rowspan="2" class="text-center" style="vertical-align:middle">Vị trí công việc</th>
+                                                <th width="200px" rowspan="2" class="text-center" style="vertical-align:middle">Vị trí công việc trước khi chuyển</th>
+                                                <th width="200px" rowspan="2" class="text-center" style="vertical-align:middle">Vị trí công việc sau khi chuyển</th>
                                                 <th width="100px" rowspan="2" class="text-center" style="vertical-align:middle">Kíp làm việc</th>
                                                 <th width="200px" rowspan="2" class="text-center" style="vertical-align:middle">Bộ phận</th>
                                                 <th width="10px" colspan="2" class="text-center" style="vertical-align:middle">Kết quả</th>
@@ -134,6 +135,7 @@
                                                         @NS.ToString("dd/MM/yyyy")
                                                     </td>
                                                     <td class="text-center">@item.TenViTri</td>
+                                                    <td class="text-center">@item.TenViTriSauKhiChuyen</td>
                                                     <td> @item.TenKip</td>
                                                     <td> @item.TenPhongBan</td>
                                                     <td>@item.Dat</td>
