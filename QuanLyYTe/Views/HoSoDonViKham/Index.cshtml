@@ -1,0 +1,259 @@
+﻿@* @model IEnumerable<QuanLyYTe.Models.CapPhatThuoc> *@
+@model IEnumerable<QuanLyYTe.Models.ViewModels.DonViKhamHoSoVM>
+
+@using System.Security.Claims;
+@using QuanLyYTe.Repositorys;
+@using Microsoft.EntityFrameworkCore;
+@inject QuanLyYTe.Repositorys.DataContext _context
+
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+    string st = ViewBag.st?.ToString("yyyy-MM-dd");
+    string ed = ViewBag.ed?.ToString("yyyy-MM-dd"); ;
+
+}
+@{
+    var TenDangNhap = User.FindFirstValue(ClaimTypes.Name);
+    var list = _context.TaiKhoan.Where(x => x.TenDangNhap == TenDangNhap).FirstOrDefault();
+}
+
+<div class="wrapper">
+    <div class="page-wrap">
+        <div class="main-content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div>
+
+                                <div class="card-header">
+                                    <form method="get" asp-action="Index" asp-controller="HoSoDonViKham">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <input type="text"
+                                                       name="search"
+                                                       placeholder="Tìm kiếm theo tên đơn vị"
+                                                       class="form-control"
+                                                       value="@ViewBag.search" />
+                                            </div>
+
+                                            <div class="col-md-2">
+                                                <button type="submit"
+                                                        class="btn btn-primary"
+                                                        style="border-radius:10px">
+                                                    <i class="bi bi-search"></i> Tìm kiếm
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div style="display: flex;">
+                                    <div style="text-align:left;width:89%">
+                                        <img style="width: 15%;" src="~/images/logoHP.png">
+                                        <div style="text-align: center; width: 14%; font-size: 11px; padding-top:0.5%;">
+                                            <b>
+                                                CÔNG TY CỔ PHẦN THÉP<br />
+                                                HÒA PHÁT DUNG QUẤT
+                                            </b>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                    </div>
+
+                                </div>
+                                <div class="app-page-title" style="display: contents;">
+                                    <div class="page-title-wrapper" style=" display: contents;">
+                                        <div class="page-title-heading">
+                                            <div style="text-align:center;">
+                                                <h4 style="margin:0px;">
+                                                    <b>
+                                                        DANH SÁCH HỒ SƠ ĐƠN VỊ KHÁM SỨC KHỎE
+                                                    </b>
+                                                </h4>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-responsive" style="width:84vw;overflow-y: scroll; height: 30vw;">
+                                    <table class="table table-bordered table-hover" id="table" width="100%" cellpadding="0">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th width="30px" rowspan="2" style="vertical-align:middle">STT</th>
+                                                <th width="130px" rowspan="2" class="text-center" style="vertical-align:middle">Tên đơn vị</th>
+                                                <th width="200px" rowspan="2" class="text-center" style="vertical-align:middle">Hồ sơ</th>
+                                                @{
+                                                    if (list != null)
+                                                    {
+                                                        if (list.ID_Quyen == 1)
+                                                        {
+                                                            <th width="100px" rowspan="2" class="text-center" style="vertical-align:middle">Thao tác</th>
+
+                                                        }
+                                                    }
+                                                }
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @{
+                                                int pageno = (int)pager.CurrentPage;
+                                                int itemperpage = (int)pager.PageSize;
+                                                int RowNo = ((pageno - 1) * itemperpage) + 1;
+                                            }
+
+                                            @foreach (var item in Model)
+                                            {
+                                                <tr>
+                                                    <td class="text-center">@RowNo</td>
+                                                    <td>@item.TenDonVi</td>
+
+                                                    <td>
+                                                        @if (item.HoSoFiles != null && item.HoSoFiles.Any())
+                                                        {
+                                                            <ul class="list-unstyled mb-0">
+                                                                @foreach (var file in item.HoSoFiles)
+                                                                {
+                                                                    <li class="d-flex justify-content-between align-items-center">
+                                                                        <span>📄 @file.TenFile</span>
+
+                                                                        <a asp-action="DownloadFile"
+                                                                           asp-route-id="@file.ID_HoSo"
+                                                                           class="btn btn-sm btn-outline-primary">
+                                                                            Tải file
+                                                                        </a>
+                                                                    </li>
+                                                                }
+                                                            </ul>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">Chưa có hồ sơ</span>
+                                                        }
+                                                    </td>
+
+                                                    @if (list != null && list.ID_Quyen == 1)
+                                                    {
+                                                        <td class="text-center">
+                                                            <a asp-action="Edit"
+                                                               asp-route-id="@item.ID_DonViKham"
+                                                               class="btn btn-sm btn-warning">
+                                                                Sửa
+                                                            </a>
+                                                        </td>
+                                                    }
+                                                </tr>
+
+                                                RowNo++;
+                                            }
+                                        </tbody>
+
+                                    </table>
+                                </div>
+                                <div class="container" style="padding-top:0.5%;">
+                                    @if (pager.TotalPages > 0)
+                                    {
+                                        <ul class="pagination justify-content-start" style="margin:0px;">
+                                            @for (var pge = pager.StartPages; pge <= pager.EndPages; pge++)
+                                            {
+                                                <li class="page-item @(pge == pager.CurrentPage ? "active" : "")">
+                                                    <a class="page-link"
+                                                       asp-controller="CapPhatThuoc"
+                                                       asp-action="Index"
+                                                       asp-route-page="@pge"
+                                                       asp-route-search="@ViewBag.search"
+                                                       asp-route-st="@ViewBag.st"
+                                                       asp-route-ed="@ViewBag.ed">@pge</a>
+                                                </li>
+                                            }
+
+                                            @if (pager.CurrentPage < pager.TotalPages)
+                                            {
+                                                <li class="page-item">
+                                                    <a class="page-link"
+                                                       asp-controller="CapPhatThuoc"
+                                                       asp-action="Index"
+                                                       asp-route-page="@(pager.CurrentPage + 1)"
+                                                       asp-route-search="@ViewBag.search"
+                                                       asp-route-st="@ViewBag.st"
+                                                       asp-route-ed="@ViewBag.ed">Next</a>
+                                                </li>
+                                                <li class="page-item">
+                                                    <a class="page-link"
+                                                       asp-controller="CapPhatThuoc"
+                                                       asp-action="Index"
+                                                       asp-route-page="@(pager.TotalPages)"
+                                                       asp-route-search="@ViewBag.search"
+                                                       asp-route-st="@ViewBag.st"
+                                                       asp-route-ed="@ViewBag.ed">Last</a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#btn-add').click(function () {
+        var url = $('#myModal').data('url');
+        $.get(url, function (data) {
+            $("#myModal").html(data);
+            $("#ModalTitle").html("THÊM MỚI VỊ TRÍ LAO ĐỘNG");
+            $("#myModal").modal('show');
+        });
+    });
+    $('#btn-Import').click(function () {
+        var url = $('#myModalImportExcel').data('url');
+        $.get(url, function (data) {
+            $("#myModalImportExcel").html(data);
+            $("#ModalTitle").html("IMPORT DANH SÁCH");
+            $("#myModalImportExcel").modal('show');
+        });
+    });
+    $("#btn-search").on('click', function () {
+        var search = $('#txtsearch').val();
+        var st = $('#st').val();
+        var ed = $('#ed').val();
+        window.location.href = '@Url.Action("Index", "CapPhatThuoc")?search=' + search+'&st='+st+'&ed='+ed;
+    });
+     $(".bi-trash-fill").on('click', function () {
+        var a=$(this).data('manv');
+        var url=$(this).data('href');
+        if(confirm('Bạn muốn xóa :'+a)){
+            $.get(url, function (data) {
+                alert(data.msg);
+                location.reload();
+            });
+        }
+
+    });
+</script>

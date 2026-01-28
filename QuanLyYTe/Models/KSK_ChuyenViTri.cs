@@ -24,8 +24,13 @@ namespace QuanLyYTe.Models
         [NotMapped]
         public string? TenPhongBan { get; set; }
         public int ID_ViTri { get; set; }
+
+        public int ID_ViTri_ChuyenDen { get; set; }
+
         [NotMapped]
         public string? TenViTri { get; set; }
+        [NotMapped]
+        public string? TenViTriSauKhiChuyen { get; set; }
 
         public DateTime? NgayKham { get; set; }
         public string? Dat { get; set; }

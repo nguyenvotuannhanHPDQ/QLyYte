@@ -1,0 +1,204 @@
+﻿@model IEnumerable<QuanLyYTe.Models.CapPhatThuoc>
+@using System.Security.Claims;
+@using QuanLyYTe.Repositorys;
+@using Microsoft.EntityFrameworkCore;
+@inject QuanLyYTe.Repositorys.DataContext _context
+
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+    string st = ViewBag.st?.ToString("yyyy-MM-dd");
+    string ed = ViewBag.ed?.ToString("yyyy-MM-dd"); ;
+
+}
+@{
+    var TenDangNhap = User.FindFirstValue(ClaimTypes.Name);
+    var list = _context.TaiKhoan.Where(x => x.TenDangNhap == TenDangNhap).FirstOrDefault();
+}
+
+<div class="wrapper">
+    <div class="page-wrap">
+        <div class="main-content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div>
+
+                                <div class="card-header">
+                                    <div class="row">
+                                        
+                                    </div>
+                                </div>
+                                <div style="display: flex;">
+                                    <div style="text-align:left;width:89%">
+                                        <img style="width: 15%;" src="~/images/logoHP.png">
+                                        <div style="text-align: center; width: 14%; font-size: 11px; padding-top:0.5%;">
+                                            <b>
+                                                CÔNG TY CỔ PHẦN THÉP<br />
+                                                HÒA PHÁT DUNG QUẤT
+                                            </b>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                    </div>
+
+                                </div>
+                                <div class="app-page-title" style="display: contents;">
+                                    <div class="page-title-wrapper" style=" display: contents;">
+                                        <div class="page-title-heading">
+                                            <div style="text-align:center;">
+                                                <h4 style="margin:0px;">
+                                                    <b>
+                                                        THÊM MỚI HỒ SƠ ĐƠN VỊ KHÁM SỨC KHỎE
+                                                    </b>
+                                                </h4>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            @using (Html.BeginForm("Create", "HoSoDonViKham", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                            {
+                                @Html.AntiForgeryToken()
+
+                                <div class="card-body">
+
+                                    <!-- TÊN ĐƠN VỊ -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">
+                                            Tên đơn vị <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text"
+                                               name="TenDonVi"
+                                               class="form-control"
+                                               placeholder="Nhập tên đơn vị khám"
+                                               required />
+                                    </div>
+
+                                    <!-- FILE HỒ SƠ -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">
+                                            Hồ sơ đơn vị <span class="text-danger">*</span>
+                                        </label>
+
+                                        <div id="fileContainer" class="d-flex flex-column gap-2">
+                                            <div class="input-group">
+                                                <input type="file"
+                                                       name="Files"
+                                                       class="form-control"
+                                                       accept=".pdf,.jpg,.jpeg,.png"
+                                                       required />
+                                                <button type="button"
+                                                        class="btn btn-outline-danger btn-remove d-none">
+                                                    ✖
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary mt-2"
+                                                id="btnAddFile">
+                                            ➕ Thêm file
+                                        </button>
+                                    </div>
+
+                                    <!-- SUBMIT -->
+                                    <div class="text-end mt-4">
+                                        <button type="submit" class="btn btn-success">
+                                            Lưu dữ liệu
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#btn-add').click(function () {
+        var url = $('#myModal').data('url');
+        $.get(url, function (data) {
+            $("#myModal").html(data);
+            $("#ModalTitle").html("THÊM MỚI VỊ TRÍ LAO ĐỘNG");
+            $("#myModal").modal('show');
+        });
+    });
+    $('#btn-Import').click(function () {
+        var url = $('#myModalImportExcel').data('url');
+        $.get(url, function (data) {
+            $("#myModalImportExcel").html(data);
+            $("#ModalTitle").html("IMPORT DANH SÁCH");
+            $("#myModalImportExcel").modal('show');
+        });
+    });
+    $("#btn-search").on('click', function () {
+        var search = $('#txtsearch').val();
+        var st = $('#st').val();
+        var ed = $('#ed').val();
+        window.location.href = '@Url.Action("Index", "CapPhatThuoc")?search=' + search+'&st='+st+'&ed='+ed;
+    });
+     $(".bi-trash-fill").on('click', function () {
+        var a=$(this).data('manv');
+        var url=$(this).data('href');
+        if(confirm('Bạn muốn xóa :'+a)){
+            $.get(url, function (data) {
+                alert(data.msg);
+                location.reload();
+            });
+        }
+
+    });
+</script>
+<script>
+    document.getElementById("btnAddFile").addEventListener("click", function () {
+        const container = document.getElementById("fileContainer");
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "input-group";
+
+        wrapper.innerHTML = `
+            <input type="file"
+                   name="Files"
+                   class="form-control"
+                   accept=".pdf,.jpg,.jpeg,.png"
+                   required />
+            <button type="button" class="btn btn-outline-danger btn-remove">
+                ✖
+            </button>
+        `;
+
+        container.appendChild(wrapper);
+    });
+
+    document.addEventListener("click", function (e) {
+        if (e.target.classList.contains("btn-remove")) {
+            e.target.closest(".input-group").remove();
+        }
+    });
+</script>

@@ -85,6 +85,7 @@
                                                 <th width="200px" rowspan="2" class="text-center" style="vertical-align:middle">Tuyến bệnh viện</th>
                                                 <th width="150px" rowspan="2" class="text-center" style="vertical-align:middle">Tổng chi phí</th>
                                                 <th width="200px" colspan="2" class="text-center" style="vertical-align:middle">Kết quả kiểm tra SK sau khi trở lại làm việc (nếu cần)</th>
+                                                <th width="100px" rowspan="2" class="text-center" style="vertical-align:middle">File Hồ sơ</th>
                                                 <th width="100px" rowspan="2" class="text-center" style="vertical-align:middle">Thao tác</th>
                                             </tr>
                                             <tr>
@@ -221,6 +222,53 @@
                                                             </span>
                                                         </td>
                                                     }
+                                                    <td class="align-middle">
+                                                        <div class="d-flex flex-column gap-2">
+
+                                                            <!-- Khu vực hiển thị file -->
+                                                            @if (!string.IsNullOrEmpty(item.FileKhamSucKhoePath))
+                                                            {
+                                                                <div class="d-flex flex-column">
+                                                                    <a href="@item.FileKhamSucKhoePath" target="_blank">
+                                                                        📄 Xem file
+                                                                    </a>
+
+                                                                    <a asp-action="DownloadFileKham"
+                                                                       asp-controller="SoCapCuu"
+                                                                       asp-route-id="@item.ID_SCC"
+                                                                       class="text-decoration-none">
+                                                                        ⬇️ Tải file
+                                                                    </a>
+                                                                </div>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="text-muted">Chưa có file</span>
+                                                            }
+
+                                                            <!-- Khu vực upload -->
+                                                            <form asp-action="UploadFileKham"
+                                                                  asp-controller="SoCapCuu"
+                                                                  method="post"
+                                                                  enctype="multipart/form-data"
+                                                                  class="d-flex align-items-center gap-2 mt-1">
+
+                                                                @Html.AntiForgeryToken()
+                                                                <input type="hidden" name="ID_SCC" value="@item.ID_SCC" />
+
+                                                                <input type="file"
+                                                                       name="FileKhamSucKhoe"
+                                                                       class="form-control form-control-sm"
+                                                                       accept=".pdf,.jpg,.jpeg,.png"
+                                                                       required />
+
+                                                                <button type="submit" class="btn btn-sm btn-primary">
+                                                                    Lưu
+                                                                </button>
+                                                            </form>
+
+                                                        </div>
+                                                    </td>
                                                     <td class="text-center">
                                                         <a class="bi bi-trash-fill" title="Xóa" href="@Url.Action("Delete", "SoCapCuu", new { id = item.ID_SCC })"
                                                            onclick="return confirm('Bạn muốn xóa : @item.HoTen')">

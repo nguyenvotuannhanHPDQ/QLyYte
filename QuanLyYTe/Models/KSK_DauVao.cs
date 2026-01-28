@@ -13,6 +13,7 @@ namespace QuanLyYTe.Models
         [NotMapped]
         public string? TenGioiTinh { get; set; }
         public string? CCCD { get; set; }
+        public string? MaNhanVienSauNhanViec { get; set; }
         public string? TDHV { get; set; }
         public string? TDCM { get; set; }
         public string? NgheNghiep { get; set; }

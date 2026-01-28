@@ -42,6 +42,8 @@ namespace QuanLyYTe.Repositorys
         public DbSet<NhomBenhLy> NhomBenhLy { get; set; }
         public DbSet<TuyenBenhVien> TuyenBenhVien { get; set; }
         public DbSet<TENTER> Tenter { get; set; }
+        public DbSet<DM_DonViKham> DM_DonViKham { get; set; }
+        public DbSet<KSK_HoSoDonVi> KSK_HoSoDonVi { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

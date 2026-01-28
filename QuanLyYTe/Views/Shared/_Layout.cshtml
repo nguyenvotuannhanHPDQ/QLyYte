@@ -160,9 +160,16 @@
                         <a href="@Url.Action("Index", "SoTheoDoi_KSK")" class="nav-link "><span class="pcoded-micon"><i class="bi bi-clipboard-fill"></i></span><span class="pcoded-mtext">Sổ theo dõi</span></a>
                     </li>
 
+                    <li class="nav-item pcoded-menu-caption">
+                        <label>HỒ SƠ ĐƠN VỊ KSK</label>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "HoSoDonViKham")" class="nav-link "><span class="pcoded-micon"><i class="bi bi-calendar-range-fill"></i></span><span class="pcoded-mtext">Danh sách hồ sơ đơn vị KSK</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Create", "HoSoDonViKham")" class="nav-link "><span class="pcoded-micon"><i class="bi bi-send-check-fill"></i></span><span class="pcoded-mtext">Thêm mới đơn vị KSK</span></a>
+                    </li>
                   
-
-
                     @{
                         if (list != null)
                         {

@@ -4,6 +4,8 @@ using QuanLyYTe.Repositorys;
 using Oracle.EntityFrameworkCore;
 using System;
 using QuanLyYTe.Models;
+using QuanLyYTe.Services.Implementions;
+using QuanLyYTe.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +22,8 @@ builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionString") ?? throw new InvalidOperationException("Connection string 'ConnectionString' not found.")));
 var connectionStringORC = builder.Configuration.GetConnectionString("ConnectionStringORC");
 builder.Services.AddDbContext<ORCcontext>(options =>options.UseOracle(connectionStringORC));
-    
+builder.Services.AddScoped<IFileStorageService, FileStorageService>();
+
 
 var app = builder.Build();
 
