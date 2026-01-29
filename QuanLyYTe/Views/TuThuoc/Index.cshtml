@@ -1,0 +1,260 @@
+﻿@model List<QuanLyYTe.Models.ViewModels.TuThuocListView>
+@using System.Security.Claims;
+@using QuanLyYTe.Repositorys;
+@using Microsoft.EntityFrameworkCore;
+@inject QuanLyYTe.Repositorys.DataContext _context
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+    string st = ViewBag.st?.ToString("yyyy-MM-dd");
+    string ed = ViewBag.ed?.ToString("yyyy-MM-dd"); ;
+
+}
+@{
+    var TenDangNhap = User.FindFirstValue(ClaimTypes.Name);
+    var list = _context.TaiKhoan.Where(x => x.TenDangNhap == TenDangNhap).FirstOrDefault();
+}
+
+<div class="wrapper">
+    <div class="page-wrap">
+        <div class="main-content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div>
+
+                                <div class="card-header">
+                                    <div class="row">
+                                        
+                                    </div>
+                                </div>
+                                <div style="display: flex;">
+                                    <div style="text-align:left;width:89%">
+                                        <img style="width: 15%;" src="~/images/logoHP.png">
+                                        <div style="text-align: center; width: 14%; font-size: 11px; padding-top:0.5%;">
+                                            <b>
+                                                CÔNG TY CỔ PHẦN THÉP<br />
+                                                HÒA PHÁT DUNG QUẤT
+                                            </b>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                    </div>
+
+                                </div>
+                                <div class="app-page-title" style="display: contents;">
+                                    <div class="page-title-wrapper" style=" display: contents;">
+                                        <div class="page-title-heading">
+                                            <div style="text-align:center;">
+                                                <h4 style="margin:0px;">
+                                                    <b>
+                                                        DANH SÁCH TỦ THUỐC BỘ PHẬN/NHÀ MÁY
+                                                    </b>
+                                                </h4>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-responsive" style="width:84vw;overflow-y: scroll; height: 30vw;">
+                                    <table class="table table-bordered table-hover" id="table" width="100%" cellpadding="0">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Tên tủ thuốc</th>
+                                                <th>Bộ phận/Nhà máy</th>
+                                                <th>Mô tả</th>
+                                                <th>Ngày tạo</th>
+                                                <th>Bản đồ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @{
+                                                int pageno = (int)pager.CurrentPage;
+                                                int itemperpage = (int)pager.PageSize;
+                                                int RowNo = ((pageno - 1) * itemperpage) + 1;
+                                            }
+
+                                            @for (int i = 0; i < Model.Count; i++)
+                                            {
+                                                <tr>
+                                                    <td>@(i + 1)</td>
+                                                    <td>@Model[i].TenTuThuoc</td>
+                                                    <td>@Model[i].TenPhongBan</td>
+                                                    <td>@Model[i].GhiChu</td>
+                                                    <td>@Model[i].NgayTao</td>
+                                                    <td>
+                                                        <a href="@Model[i].MapUrl"
+                                                           target="_blank"
+                                                           class="btn btn-sm btn-primary">
+                                                            Xem bản đồ
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+
+                                    </table>
+                                </div>
+                                <div class="container" style="padding-top:0.5%;">
+                                    @* @if (pager.TotalPages > 0) *@
+                                    @* { *@
+                                    @*     <ul class="pagination justify-content-start" style="margin:0px;"> *@
+                                    @*         @for (var pge = pager.StartPages; pge <= pager.EndPages; pge++) *@
+                                    @*         { *@
+                                    @*             <li class="page-item @(pge == pager.CurrentPage ? "active" : "")"> *@
+                                    @*                 <a class="page-link" *@
+                                    @*                    asp-controller="CapPhatThuoc" *@
+                                    @*                    asp-action="Index" *@
+                                    @*                    asp-route-page="@pge" *@
+                                    @*                    asp-route-search="@ViewBag.search" *@
+                                    @*                    asp-route-st="@ViewBag.st" *@
+                                    @*                    asp-route-ed="@ViewBag.ed">@pge</a> *@
+                                    @*             </li> *@
+                                    @*         } *@
+
+                                    @*         @if (pager.CurrentPage < pager.TotalPages) *@
+                                    @*         { *@
+                                    @*             <li class="page-item"> *@
+                                    @*                 <a class="page-link" *@
+                                    @*                    asp-controller="CapPhatThuoc" *@
+                                    @*                    asp-action="Index" *@
+                                    @*                    asp-route-page="@(pager.CurrentPage + 1)" *@
+                                    @*                    asp-route-search="@ViewBag.search" *@
+                                    @*                    asp-route-st="@ViewBag.st" *@
+                                    @*                    asp-route-ed="@ViewBag.ed">Next</a> *@
+                                    @*             </li> *@
+                                    @*             <li class="page-item"> *@
+                                    @*                 <a class="page-link" *@
+                                    @*                    asp-controller="CapPhatThuoc" *@
+                                    @*                    asp-action="Index" *@
+                                    @*                    asp-route-page="@(pager.TotalPages)" *@
+                                    @*                    asp-route-search="@ViewBag.search" *@
+                                    @*                    asp-route-st="@ViewBag.st" *@
+                                    @*                    asp-route-ed="@ViewBag.ed">Last</a> *@
+                                    @*             </li> *@
+                                    @*         } *@
+                                    @*     </ul> *@
+                                    @* } *@
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#btn-add').click(function () {
+        var url = $('#myModal').data('url');
+        $.get(url, function (data) {
+            $("#myModal").html(data);
+            $("#ModalTitle").html("THÊM MỚI VỊ TRÍ LAO ĐỘNG");
+            $("#myModal").modal('show');
+        });
+    });
+    $('#btn-Import').click(function () {
+        var url = $('#myModalImportExcel').data('url');
+        $.get(url, function (data) {
+            $("#myModalImportExcel").html(data);
+            $("#ModalTitle").html("IMPORT DANH SÁCH");
+            $("#myModalImportExcel").modal('show');
+        });
+    });
+    $("#btn-search").on('click', function () {
+        var search = $('#txtsearch').val();
+        var st = $('#st').val();
+        var ed = $('#ed').val();
+        window.location.href = '@Url.Action("Index", "CapPhatThuoc")?search=' + search+'&st='+st+'&ed='+ed;
+    });
+     $(".bi-trash-fill").on('click', function () {
+        var a=$(this).data('manv');
+        var url=$(this).data('href');
+        if(confirm('Bạn muốn xóa :'+a)){
+            $.get(url, function (data) {
+                alert(data.msg);
+                location.reload();
+            });
+        }
+
+    });
+</script>
+<script>
+    document.getElementById("btnAddFile").addEventListener("click", function () {
+        const container = document.getElementById("fileContainer");
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "input-group";
+
+        wrapper.innerHTML = `
+            <input type="file"
+                   name="Files"
+                   class="form-control"
+                   accept=".pdf,.jpg,.jpeg,.png"
+                   required />
+            <button type="button" class="btn btn-outline-danger btn-remove">
+                ✖
+            </button>
+        `;
+
+        container.appendChild(wrapper);
+    });
+
+    document.addEventListener("click", function (e) {
+        if (e.target.classList.contains("btn-remove")) {
+            e.target.closest(".input-group").remove();
+        }
+    });
+</script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+    var map = L.map('map').setView([15.37768, 108.793321], 16); // Dung Quat
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    var marker = null;
+
+    map.on('click', function (e) {
+        var lat = e.latlng.lat;
+        var lng = e.latlng.lng;
+
+        document.getElementById("Latitude").value = lat;
+        document.getElementById("Longitude").value = lng;
+
+        if (marker) {
+            marker.setLatLng(e.latlng);
+        } else {
+            marker = L.marker(e.latlng).addTo(map);
+        }
+    });
+</script>
