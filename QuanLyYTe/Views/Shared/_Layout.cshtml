@@ -161,14 +161,32 @@
                     </li>
 
                     <li class="nav-item pcoded-menu-caption">
-                        <label>HỒ SƠ ĐƠN VỊ KSK</label>
+                        <label>TỦ THUỐC Y TẾ</label>
                     </li>
                     <li class="nav-item">
-                        <a href="@Url.Action("Index", "HoSoDonViKham")" class="nav-link "><span class="pcoded-micon"><i class="bi bi-calendar-range-fill"></i></span><span class="pcoded-mtext">Danh sách hồ sơ đơn vị KSK</span></a>
+                        <a href="@Url.Action("Index", "TuThuoc")" class="nav-link "><span class="pcoded-micon"><i class="bi bi-calendar-range-fill"></i></span><span class="pcoded-mtext">Danh sách vị trí tủ thuốc</span></a>
                     </li>
-                    <li class="nav-item">
-                        <a href="@Url.Action("Create", "HoSoDonViKham")" class="nav-link "><span class="pcoded-micon"><i class="bi bi-send-check-fill"></i></span><span class="pcoded-mtext">Thêm mới đơn vị KSK</span></a>
-                    </li>
+                    @{
+                        if (list != null)
+                        {
+                            if (list.ID_Quyen == 1 || list.ID_Quyen == 2)
+                            {
+                                <li class="nav-item">
+                                    <a href="@Url.Action("Create", "TuThuoc")" class="nav-link "><span class="pcoded-micon"><i class="bi bi-send-check-fill"></i></span><span class="pcoded-mtext">Thêm mới tủ thuốc</span></a>
+                                </li>
+
+                                <li class="nav-item pcoded-menu-caption">
+                                    <label>HỒ SƠ ĐƠN VỊ KSK</label>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="@Url.Action("Index", "HoSoDonViKham")" class="nav-link "><span class="pcoded-micon"><i class="bi bi-calendar-range-fill"></i></span><span class="pcoded-mtext">Danh sách hồ sơ đơn vị KSK</span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="@Url.Action("Create", "HoSoDonViKham")" class="nav-link "><span class="pcoded-micon"><i class="bi bi-send-check-fill"></i></span><span class="pcoded-mtext">Thêm mới đơn vị KSK</span></a>
+                                </li>
+                            }
+                        }
+                    }
                   
                     @{
                         if (list != null)

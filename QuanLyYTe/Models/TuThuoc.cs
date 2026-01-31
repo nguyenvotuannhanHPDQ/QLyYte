@@ -10,7 +10,10 @@ namespace QuanLyYTe.Models
         public string TenTuThuoc { get; set; } = null!;
         public int ID_PhongBan { get; set; }
 
+        [Column(TypeName = "decimal(18,15)")]
         public decimal Latitude { get; set; }
+
+        [Column(TypeName = "decimal(18,15)")]
         public decimal Longitude { get; set; }
 
         public string GhiChu { get; set; }

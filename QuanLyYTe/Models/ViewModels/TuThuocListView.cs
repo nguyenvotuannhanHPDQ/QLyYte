@@ -12,5 +12,8 @@
 
         public string MapUrl =>
             $"https://www.openstreetmap.org/?mlat={Latitude}&mlon={Longitude}#map=18/{Latitude}/{Longitude}";
+
+        public string ChiDuongUrl => 
+            $"https://www.google.com/maps/dir/?api=1&destination={Latitude},{Longitude}";
     }
 }
