@@ -782,5 +782,33 @@ namespace QuanLyYTe.Controllers
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult PheDuyet(int id)
+        {
+            if (id <= 0)
+            {
+                TempData["msgError"] = "<script>alert('Dữ liệu không hợp lệ');</script>";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var trinhKy = _context.TrinhKy
+                                  .FirstOrDefault(x => x.ID_TK == id);
+
+            if (trinhKy == null)
+            {
+                TempData["msgError"] = "<script>alert('Không tìm thấy trình ký cần phê duyệt');</script>";
+                return RedirectToAction(nameof(Index));
+            }
+
+            trinhKy.TinhTrang_TruongPho = 1;
+            trinhKy.Ngay_TruongPho = DateTime.Today;
+
+            _context.TrinhKy.Update(trinhKy);
+            _context.SaveChanges();
+
+            TempData["msgSuccess"] = "<script>alert('Phê duyệt trình ký thành công');</script>";
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
