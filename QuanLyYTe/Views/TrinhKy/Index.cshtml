@@ -95,10 +95,13 @@
                                                 @{
                                                     if (list != null)
                                                     {
-                                                        if (list.ID_Quyen == 1)
+                                                        if (list.ID_Quyen == 1 || list.ID_Quyen == 4)
                                                         {
                                                             <th width="100px" rowspan="2" class="text-center" style="vertical-align:middle">Thao tác</th>
-
+                                                        }
+                                                        if (list.ID_Quyen == 4)
+                                                        {
+                                                            <th width="100px" rowspan="2" class="text-center" style="vertical-align:middle">Phê duyệt</th>
                                                         }
                                                     }
                                                 }
@@ -207,6 +210,37 @@
                                                                     }
 
                                                                     <a title="" class="feather icon-align-justify" id="@item.ID_TK" href="@Url.Action("Index","ChiTiet_TrinhKy", new { id = item.ID_TK})"></a>
+                                                                </td>
+                                                            }
+
+                                                            if (list.ID_Quyen == 4) {
+                                                                <td class="text-center" style="vertical-align:middle">
+                                                                    <a title="Xem chi tiết danh sách" class="feather icon-align-justify" id="@item.ID_TK" href="@Url.Action("Index","ChiTiet_TrinhKy", new { id = item.ID_TK})"></a>
+                                                                </td>
+                                                                <td class="text-center" style="vertical-align:middle">
+                                                                    @if (item.TinhTrang_TruongPho != 1)
+                                                                    {
+                                                                        <form asp-action="PheDuyet"
+                                                                              asp-controller="TrinhKy"
+                                                                              method="post"
+                                                                              style="display:inline;"
+                                                                              onsubmit="return confirm('Bạn có chắc chắn muốn phê duyệt?');">
+
+                                                                            @Html.AntiForgeryToken()
+                                                                            <input type="hidden" name="id" value="@item.ID_TK" />
+
+                                                                            <button type="submit"
+                                                                                    class="btn-transition btn btn-success"
+                                                                                    style="width:120px;">
+                                                                                Phê duyệt
+                                                                            </button>
+                                                                        </form>
+
+                                                                    } else {
+                                                                        <a class="" title="Đã phê duyệt">
+                                                                            <span class="btn-transition btn btn-primary" style="width:120px;">Đã duyệt</span>
+                                                                        </a>
+                                                                    }
                                                                 </td>
                                                             }
                                                         }

@@ -5,6 +5,7 @@
 @inject QuanLyYTe.Repositorys.DataContext _context
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 @if (TempData["msgSuccess"] != null)
 {
@@ -84,12 +85,21 @@
                                     <table class="table table-bordered table-hover" id="table" width="100%" cellpadding="0">
                                         <thead class="thead-light">
                                             <tr>
-                                                <th>#</th>
+                                                <th class="text-center" width="30px">#</th>
                                                 <th>Tên tủ thuốc</th>
                                                 <th>Bộ phận/Nhà máy</th>
-                                                <th>Mô tả</th>
-                                                <th>Ngày tạo</th>
-                                                <th>Bản đồ</th>
+                                                <th class="text-center" width="200px">Mô tả</th>
+                                                <th class="text-center" width="200px">Ngày tạo</th>
+                                                <th class="text-center" width="400px">Xem đường đi từ vị trí hiện tại</th>
+                                                @{
+                                                    if (list != null)
+                                                    {
+                                                        if (list.ID_Quyen == 1 || list.ID_Quyen == 2)
+                                                        {
+                                                            <th class="text-center" width="100px">Thao tác</th>
+                                                        }
+                                                    }
+                                                }
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -108,61 +118,40 @@
                                                     <td>@Model[i].GhiChu</td>
                                                     <td>@Model[i].NgayTao</td>
                                                     <td>
-                                                        <a href="@Model[i].MapUrl"
+                                                        <a href="@Model[i].ChiDuongUrl"
                                                            target="_blank"
-                                                           class="btn btn-sm btn-primary">
-                                                            Xem bản đồ
+                                                           class="btn btn-sm btn-success">
+                                                            Xem đường đi
                                                         </a>
                                                     </td>
+                                                    @{
+                                                        if (list != null)
+                                                        {
+                                                            if (list.ID_Quyen == 1 || list.ID_Quyen == 2)
+                                                            {
+                                                                <td class="text-center">
+                                                                    <a class="bi bi-trash-fill"
+                                                                       title="Xóa"
+                                                                       href="@Url.Action("Delete", "TuThuoc", new { id = @Model[i].ID_TuThuoc})"
+                                                                       onclick="return confirm('Bạn có chắc muốn xóa tủ thuốc: @Model[i].TenTuThuoc ?')">
+                                                                    </a>
+
+                                                                    <a title="Chi tiết"
+                                                                       class="feather icon-align-justify"
+                                                                       href="@Url.Action("Edit","TuThuoc", new { id = Model[i].ID_TuThuoc })">
+                                                                    </a>
+                                                                </td>
+
+                                                            }
+                                                        }
+                                                    }
                                                 </tr>
                                             }
                                         </tbody>
-
                                     </table>
-                                </div>
-                                <div class="container" style="padding-top:0.5%;">
-                                    @* @if (pager.TotalPages > 0) *@
-                                    @* { *@
-                                    @*     <ul class="pagination justify-content-start" style="margin:0px;"> *@
-                                    @*         @for (var pge = pager.StartPages; pge <= pager.EndPages; pge++) *@
-                                    @*         { *@
-                                    @*             <li class="page-item @(pge == pager.CurrentPage ? "active" : "")"> *@
-                                    @*                 <a class="page-link" *@
-                                    @*                    asp-controller="CapPhatThuoc" *@
-                                    @*                    asp-action="Index" *@
-                                    @*                    asp-route-page="@pge" *@
-                                    @*                    asp-route-search="@ViewBag.search" *@
-                                    @*                    asp-route-st="@ViewBag.st" *@
-                                    @*                    asp-route-ed="@ViewBag.ed">@pge</a> *@
-                                    @*             </li> *@
-                                    @*         } *@
-
-                                    @*         @if (pager.CurrentPage < pager.TotalPages) *@
-                                    @*         { *@
-                                    @*             <li class="page-item"> *@
-                                    @*                 <a class="page-link" *@
-                                    @*                    asp-controller="CapPhatThuoc" *@
-                                    @*                    asp-action="Index" *@
-                                    @*                    asp-route-page="@(pager.CurrentPage + 1)" *@
-                                    @*                    asp-route-search="@ViewBag.search" *@
-                                    @*                    asp-route-st="@ViewBag.st" *@
-                                    @*                    asp-route-ed="@ViewBag.ed">Next</a> *@
-                                    @*             </li> *@
-                                    @*             <li class="page-item"> *@
-                                    @*                 <a class="page-link" *@
-                                    @*                    asp-controller="CapPhatThuoc" *@
-                                    @*                    asp-action="Index" *@
-                                    @*                    asp-route-page="@(pager.TotalPages)" *@
-                                    @*                    asp-route-search="@ViewBag.search" *@
-                                    @*                    asp-route-st="@ViewBag.st" *@
-                                    @*                    asp-route-ed="@ViewBag.ed">Last</a> *@
-                                    @*             </li> *@
-                                    @*         } *@
-                                    @*     </ul> *@
-                                    @* } *@
+                                    <div id="map" style="height:500px;"></div>
                                 </div>
                             </div>
-                            
                         </div>
                     </div>
                 </div>
@@ -171,90 +160,36 @@
     </div>
 </div>
 
-<script type="text/javascript">
-    $('#btn-add').click(function () {
-        var url = $('#myModal').data('url');
-        $.get(url, function (data) {
-            $("#myModal").html(data);
-            $("#ModalTitle").html("THÊM MỚI VỊ TRÍ LAO ĐỘNG");
-            $("#myModal").modal('show');
-        });
-    });
-    $('#btn-Import').click(function () {
-        var url = $('#myModalImportExcel').data('url');
-        $.get(url, function (data) {
-            $("#myModalImportExcel").html(data);
-            $("#ModalTitle").html("IMPORT DANH SÁCH");
-            $("#myModalImportExcel").modal('show');
-        });
-    });
-    $("#btn-search").on('click', function () {
-        var search = $('#txtsearch').val();
-        var st = $('#st').val();
-        var ed = $('#ed').val();
-        window.location.href = '@Url.Action("Index", "CapPhatThuoc")?search=' + search+'&st='+st+'&ed='+ed;
-    });
-     $(".bi-trash-fill").on('click', function () {
-        var a=$(this).data('manv');
-        var url=$(this).data('href');
-        if(confirm('Bạn muốn xóa :'+a)){
-            $.get(url, function (data) {
-                alert(data.msg);
-                location.reload();
-            });
-        }
-
-    });
-</script>
 <script>
-    document.getElementById("btnAddFile").addEventListener("click", function () {
-        const container = document.getElementById("fileContainer");
-
-        const wrapper = document.createElement("div");
-        wrapper.className = "input-group";
-
-        wrapper.innerHTML = `
-            <input type="file"
-                   name="Files"
-                   class="form-control"
-                   accept=".pdf,.jpg,.jpeg,.png"
-                   required />
-            <button type="button" class="btn btn-outline-danger btn-remove">
-                ✖
-            </button>
-        `;
-
-        container.appendChild(wrapper);
-    });
-
-    document.addEventListener("click", function (e) {
-        if (e.target.classList.contains("btn-remove")) {
-            e.target.closest(".input-group").remove();
-        }
-    });
-</script>
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-<script>
-    var map = L.map('map').setView([15.37768, 108.793321], 16); // Dung Quat
+    const map = L.map('map').setView([15.37768, 108.793321], 15);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap'
     }).addTo(map);
 
-    var marker = null;
+    const markers = [];
+    const data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
 
-    map.on('click', function (e) {
-        var lat = e.latlng.lat;
-        var lng = e.latlng.lng;
+    if (Array.isArray(data)) {
+        data.forEach(item => {
 
-        document.getElementById("Latitude").value = lat;
-        document.getElementById("Longitude").value = lng;
+            if (!item.Latitude || !item.Longitude) return;
 
-        if (marker) {
-            marker.setLatLng(e.latlng);
-        } else {
-            marker = L.marker(e.latlng).addTo(map);
+            const marker = L.marker([item.Latitude, item.Longitude])
+            .addTo(map)
+            .bindTooltip(item.TenTuThuoc, {
+                permanent: true,
+                direction: 'top',
+                offset: [0, -10],
+                className: 'tu-thuoc-label'
+            });
+
+            markers.push(marker);
+        });
+
+        if (markers.length > 0) {
+            const group = L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.2));
         }
-    });
+    }
 </script>

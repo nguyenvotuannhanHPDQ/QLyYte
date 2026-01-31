@@ -160,69 +160,27 @@
     </div>
 </div>
 
-<script type="text/javascript">
-    $('#btn-add').click(function () {
-        var url = $('#myModal').data('url');
-        $.get(url, function (data) {
-            $("#myModal").html(data);
-            $("#ModalTitle").html("THÊM MỚI VỊ TRÍ LAO ĐỘNG");
-            $("#myModal").modal('show');
-        });
-    });
-    $('#btn-Import').click(function () {
-        var url = $('#myModalImportExcel').data('url');
-        $.get(url, function (data) {
-            $("#myModalImportExcel").html(data);
-            $("#ModalTitle").html("IMPORT DANH SÁCH");
-            $("#myModalImportExcel").modal('show');
-        });
-    });
-    $("#btn-search").on('click', function () {
-        var search = $('#txtsearch').val();
-        var st = $('#st').val();
-        var ed = $('#ed').val();
-        window.location.href = '@Url.Action("Index", "CapPhatThuoc")?search=' + search+'&st='+st+'&ed='+ed;
-    });
-     $(".bi-trash-fill").on('click', function () {
-        var a=$(this).data('manv');
-        var url=$(this).data('href');
-        if(confirm('Bạn muốn xóa :'+a)){
-            $.get(url, function (data) {
-                alert(data.msg);
-                location.reload();
-            });
-        }
-
-    });
-</script>
-<script>
-    document.getElementById("btnAddFile").addEventListener("click", function () {
-        const container = document.getElementById("fileContainer");
-
-        const wrapper = document.createElement("div");
-        wrapper.className = "input-group";
-
-        wrapper.innerHTML = `
-            <input type="file"
-                   name="Files"
-                   class="form-control"
-                   accept=".pdf,.jpg,.jpeg,.png"
-                   required />
-            <button type="button" class="btn btn-outline-danger btn-remove">
-                ✖
-            </button>
-        `;
-
-        container.appendChild(wrapper);
-    });
-
-    document.addEventListener("click", function (e) {
-        if (e.target.classList.contains("btn-remove")) {
-            e.target.closest(".input-group").remove();
-        }
-    });
-</script>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    function normalizeCoordinateInput(input) {
+        input.addEventListener('input', function () {
+            // Tự động đổi dấu , thành .
+            if (this.value.includes(',')) {
+                this.value = this.value.replace(/,/g, '.');
+            }
+        });
+
+        input.addEventListener('keydown', function (e) {
+            // Chặn nhập dấu phẩy ngay từ đầu
+            if (e.key === ',') {
+                e.preventDefault();
+            }
+        });
+    }
+
+    normalizeCoordinateInput(document.getElementById('ManualLatitude'));
+    normalizeCoordinateInput(document.getElementById('ManualLongitude'));
+</script>
 
 <script>
     var map = L.map('map').setView([15.37768, 108.793321], 16); // Dung Quat
