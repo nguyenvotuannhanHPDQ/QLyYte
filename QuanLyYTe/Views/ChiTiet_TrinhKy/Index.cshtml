@@ -284,9 +284,9 @@
                                                             var PhongBan = List_BP.Where(x => x.ID_PhongBan == NhanVien.ID_PhongBan).FirstOrDefault();
                                                             var ViTri = List_VTLV.Where(x => x.ID_ViTri == NhanVien.ID_ViTri).FirstOrDefault();
                                                         }
-                                                        <td> @NhanVien.MaNV - @NhanVien.HoTen</td>
-                                                        <td> @PhongBan.TenPhongBan</td>
-                                                        <td> @ViTri.TenViTri</td>
+                                                        <td>@NhanVien.MaNV - @NhanVien.HoTen</td>
+                                                        <td>@PhongBan.TenPhongBan</td>
+                                                        <td>@ViTri.TenViTri</td>
                                                         @if (ID_TrinhKy.Ngay_TruongPho == null)
                                                         {
                                                             <td></td>

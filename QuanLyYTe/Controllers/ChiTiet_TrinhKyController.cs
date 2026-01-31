@@ -112,204 +112,115 @@ namespace QuanLyYTe.Controllers
                             }).ToList();
             return res;
         }
+
         public async Task<IActionResult> ExportToExcel(int? ID_TK)
         {
-            string Ten_CBNV = "";
             try
             {
-                string fileNamemau = AppDomain.CurrentDomain.DynamicDirectory + @"App_Data\BM_KSK_BNN.xlsx";
-                string fileNamemaunew = AppDomain.CurrentDomain.DynamicDirectory + @"App_Data\BM_KSK_BNN_Temp.xlsx";
-                XLWorkbook Workbook = new XLWorkbook(fileNamemau);
-                IXLWorksheet Worksheet = Workbook.Worksheet("BNN");
-                List<KSK_BenhNgheNghiep> Data = GetDemarcation(ID_TK);
-                int row = 6, stt = 0, icol = 1;
+                var check = await _context.TrinhKy
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.ID_TK == ID_TK);
 
-                List<string> ChiTieu = new List<string>();
-                List<string> NoiDung = new List<string>();
-                foreach (var item in Data)
-                {
-                    var check_ = _context.CT_KSK_BenhNgheNghiep.Where(x => x.ID_KSK_BNN == item.ID_KSK_BNN).ToList();
-                    foreach (var ad in check_)
+                if (check == null)
+                    return BadRequest("Không tìm thấy nội dung trình ký");
+
+                var res = await (
+                    from a in _context.KSK_BenhNgheNghiep
+                    where a.ID_PhongBan == check.ID_PhongBan
+                    join nv in _context.NhanVien on a.ID_NV equals nv.ID_NV
+                    join bp in _context.PhongBan on a.ID_PhongBan equals bp.ID_PhongBan
+                    join k in _context.KipLamViec on nv.ID_Kip equals k.ID_Kip into k1
+                    from k in k1.DefaultIfEmpty()
+                    join vt in _context.ViTriLamViec on nv.ID_ViTri equals vt.ID_ViTri into vt1
+                    from vt in vt1.DefaultIfEmpty()
+                    join vtld in _context.ViTriLaoDong on a.ID_ViTriLaoDong equals vtld.ID_ViTriLaoDong into vtld1
+                    from vtld in vtld1.DefaultIfEmpty()
+                    select new
                     {
-                        ChiTieu.Add(ad.TenChiTieu);
-                        NoiDung.Add(ad.TenNoiDung);
+                        nv.MaNV,
+                        nv.HoTen,
+                        NgaySinh = nv.NgaySinh,
+                        bp.TenPhongBan,
+                        TenKip = k != null ? k.TenKip : "",
+                        TenViTri = vt != null ? vt.TenViTri : "",
+                        TenViTriLaoDong = vtld != null ? vtld.TenViTriLaoDong : "",
+                        a.NgayKham,
+                        a.NgayLenDanhSach,
+                        a.GhiChu
                     }
-                }
-                List<string> Distinct_ChiTieu = ChiTieu.Distinct().ToList();
-                int count_chitieu = Distinct_ChiTieu.Count();
-                List<string> Distinct_NoiDung = NoiDung.Distinct().ToList();
-                int count_noidung = Distinct_NoiDung.Count();
+                ).ToListAsync();
 
-                if (Data.Count() > 0)
+                res = res
+                    .Where(x => x.NgayLenDanhSach == check.NgayTrinhKy)
+                    .ToList();
+
+                using var workbook = new XLWorkbook();
+                var ws = workbook.Worksheets.Add("KSK_BNN");
+
+                // ================= HEADER =================
+                var headers = new[]
                 {
-                    Worksheet.Range(Worksheet.Cell(5, 10), Worksheet.Cell(5, (10+ count_chitieu) - 1)).Merge();
-                    Worksheet.Range(Worksheet.Cell(5, 10), Worksheet.Cell(5, (10 + count_chitieu) - 1)).Value = "Chỉ tiêu quan trắc môi trường cần khám BNN";
-                    Worksheet.Range(Worksheet.Cell(5, 10), Worksheet.Cell(5, (10 + count_chitieu) - 1)).Style.Font.SetFontSize(13);
-                    Worksheet.Range(Worksheet.Cell(5, 10), Worksheet.Cell(5, (10 + count_chitieu) - 1)).Style.Font.Bold = true;
-                    int icol_ct = 10;
-                    foreach(var ct in Distinct_ChiTieu)
-                    {
-                        Worksheet.Cell(6, icol_ct).Value = ct;
-                        Worksheet.Cell(6, icol_ct).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                        Worksheet.Cell(6, icol_ct).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(6, icol_ct).Style.Alignment.WrapText = true;
-                        icol_ct ++;
-                    }    
-                    Worksheet.Range(Worksheet.Cell(5, (11 + count_chitieu) - 1), Worksheet.Cell(5, ((11 + count_chitieu) + count_noidung) - 2)).Merge();
-                    Worksheet.Range(Worksheet.Cell(5, (11 + count_chitieu) - 1), Worksheet.Cell(5, ((11 + count_chitieu) + count_noidung) - 2)).Value = "Nội dung khám phát hiện bệnh nghề nghiệp";
-                    Worksheet.Range(Worksheet.Cell(5, (11 + count_chitieu) - 1), Worksheet.Cell(5, ((11 + count_chitieu) + count_noidung) - 2)).Style.Font.SetFontSize(13);
-                    Worksheet.Range(Worksheet.Cell(5, (11 + count_chitieu) - 1), Worksheet.Cell(5, ((11 + count_chitieu) + count_noidung) - 2)).Style.Font.Bold = true;
+                    "STT",
+                    "Mã NV",
+                    "Họ tên",
+                    "Ngày sinh",
+                    "Phòng ban",
+                    "Kíp làm việc",
+                    "Vị trí làm việc",
+                    "Vị trí lao động",
+                    "Ngày khám",
+                    "Ghi chú"
+                };
 
-                    int icol_nd = ((11 + count_chitieu) - 1);
-                    foreach (var nd in Distinct_NoiDung)
-                    {
-                        Worksheet.Cell(6, icol_nd).Value = nd;
-                        Worksheet.Cell(6, icol_nd).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                        Worksheet.Cell(6, icol_nd).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(6, icol_nd).Style.Alignment.WrapText = true;
-                        icol_nd ++;
-                    }
-
-
-                    Worksheet.Range(Worksheet.Cell(3, 1), Worksheet.Cell(3, ((11 + count_chitieu) + count_noidung) - 2)).Merge();
-                    Worksheet.Range(Worksheet.Cell(3, 1), Worksheet.Cell(3, ((11 + count_chitieu) + count_noidung) - 2)).Value = "DANH SÁCH CBNV KHÁM BỆNH NGHỀ NGHIỆP";
-                    Worksheet.Range(Worksheet.Cell(3, 1), Worksheet.Cell(3, ((11 + count_chitieu) + count_noidung) - 2)).Style.Font.SetFontSize(18);
-                    Worksheet.Range(Worksheet.Cell(3, 1), Worksheet.Cell(3, ((11 + count_chitieu) + count_noidung) - 2)).Style.Font.Bold = true;
-
-                    Worksheet.Range(Worksheet.Cell(4, 1), Worksheet.Cell(4, ((11 + count_chitieu) + count_noidung) - 2)).Merge();
-                    Worksheet.Range(Worksheet.Cell(4, 1), Worksheet.Cell(4, ((11 + count_chitieu) + count_noidung) - 2)).Value = "";
-                    Worksheet.Range(Worksheet.Cell(4, 1), Worksheet.Cell(4, ((11 + count_chitieu) + count_noidung) - 2)).Style.Font.SetFontSize(18);
-                    Worksheet.Range(Worksheet.Cell(4, 1), Worksheet.Cell(4, ((11 + count_chitieu) + count_noidung) - 2)).Style.Font.Bold = true;
-
-
-                    foreach (var item in Data)
-                    {
-
-                        row++; stt++; icol = 1;
-
-                        Worksheet.Cell(row, icol).Value = stt;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-
-                        icol++;
-
-                        Worksheet.Cell(row, icol).Value = item.TenViTriLaoDong;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = item.MaNV;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-                        Ten_CBNV = item.MaNV;
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = item.HoTen;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = item.NgaySinh;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-                        Worksheet.Cell(row, icol).Style.DateFormat.Format = "dd-MM-yyyy";
-
-
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = item.TenViTri;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = item.TenKip;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = item.NgayNhanViec;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-                        Worksheet.Cell(row, icol).Style.DateFormat.Format = "dd-MM-yyyy";
-
-
-                        foreach (var Chitieu in Distinct_ChiTieu)
-                        {
-                            var check_ct = _context.CT_KSK_BenhNgheNghiep.Where(x => x.ID_KSK_BNN == item.ID_KSK_BNN && x.TenChiTieu == Chitieu).Distinct().FirstOrDefault();
-                            if( check_ct != null)
-                            {
-                                icol++;
-                                Worksheet.Cell(row, icol + 1).Value = "X";
-                            }
-                            else
-                            {
-                                icol++;
-                                Worksheet.Cell(row, icol + 1).Value = " ";
-                            }
-                         
-                            Worksheet.Cell(row, icol + 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                            Worksheet.Cell(row, icol + 1).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                            Worksheet.Cell(row, icol + 1).Style.Alignment.WrapText = true;
-
-                        }
-                        
-                        foreach(var Noidung in Distinct_NoiDung)
-                        {
-                            var check_nd = _context.CT_KSK_BenhNgheNghiep.Where(x => x.ID_KSK_BNN == item.ID_KSK_BNN && x.TenNoiDung == Noidung).FirstOrDefault();
-                            if(check_nd != null)
-                            {
-                                icol++;
-                                Worksheet.Cell(row, icol + 1).Value = "X";
-                            }   
-                            else
-                            {
-
-                                icol++;
-                                Worksheet.Cell(row, icol + 1).Value = " ";
-                            }
-                            Worksheet.Cell(row, icol + 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                            Worksheet.Cell(row, icol + 1).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                            Worksheet.Cell(row, icol + 1).Style.Alignment.WrapText = true;
-                        }    
-
-
-
-                    }
-
-                    Worksheet.Range("A7:P" + (row)).Style.Font.SetFontName("Times New Roman");
-                    Worksheet.Range("A7:P" + (row)).Style.Font.SetFontSize(13);
-
-                    int iclo_in = (((11 + count_chitieu) + count_noidung) - 2);
-                    Worksheet.Range(Worksheet.Cell(5, 1), Worksheet.Cell(row, iclo_in)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-                    Worksheet.Range(Worksheet.Cell(5, 1), Worksheet.Cell(row, iclo_in)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-
-
-                    Workbook.SaveAs(fileNamemaunew);
-                    byte[] fileBytes = System.IO.File.ReadAllBytes(fileNamemaunew);
-                    string fileName = "Danh sách KSK_BNN - " + DateTime.Now.Date.ToString("dd/MM/yyyy") + ".xlsx";
-                    return File(fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, fileName);
-                }
-                else
+                for (int i = 0; i < headers.Length; i++)
                 {
-
-
-                    Workbook.SaveAs(fileNamemaunew);
-                    byte[] fileBytes = System.IO.File.ReadAllBytes(fileNamemaunew);
-                    string fileName = "Danh sách KSK_BNN - " + DateTime.Now.Date.ToString("dd/MM/yyyy") + ".xlsx";
-                    return File(fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, fileName);
+                    ws.Cell(1, i + 1).Value = headers[i];
+                    ws.Cell(1, i + 1).Style.Font.Bold = true;
+                    ws.Cell(1, i + 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    ws.Cell(1, i + 1).Style.Border.BottomBorder = XLBorderStyleValues.Thin;
                 }
+
+                // ================= DATA =================
+                int row = 2;
+                int stt = 1;
+
+                foreach (var item in res)
+                {
+                    ws.Cell(row, 1).Value = stt++;
+                    ws.Cell(row, 2).Value = item.MaNV;
+                    ws.Cell(row, 3).Value = item.HoTen;
+                    ws.Cell(row, 4).Value = item.NgaySinh;
+                    ws.Cell(row, 5).Value = item.TenPhongBan;
+                    ws.Cell(row, 6).Value = item.TenKip;
+                    ws.Cell(row, 7).Value = item.TenViTri;
+                    ws.Cell(row, 8).Value = item.TenViTriLaoDong;
+                    ws.Cell(row, 9).Value = item.NgayKham;
+                    ws.Cell(row, 10).Value = item.GhiChu;
+
+                    ws.Cell(row, 4).Style.DateFormat.Format = "dd/MM/yyyy";
+                    ws.Cell(row, 9).Style.DateFormat.Format = "dd/MM/yyyy";
+
+                    row++;
+                }
+
+                ws.Columns().AdjustToContents();
+
+                // ================= EXPORT =================
+                using var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+
+                return File(
+                    stream.ToArray(),
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    $"DanhSach_KSK_BNN_{DateTime.Now:dd_MM_yyyy}.xlsx"
+                );
             }
             catch (Exception ex)
             {
-                TempData["msgSuccess"] = "<script>alert('Có lỗi khi truy xuất dữ liệu. Vui lòng kiểm tra mã nhân viên: " + Ten_CBNV + "');</script>";
-                return RedirectToAction("Index", "ChiTiet_TrinhKy", new { id = ID_TK});
+                TempData["msgError"] =
+                    "<script>alert('Có lỗi khi xuất Excel. Vui lòng thử lại');</script>";
+
+                return RedirectToAction("Index");
             }
         }
     }
