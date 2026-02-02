@@ -114,6 +114,13 @@ namespace QuanLyYTe.Controllers
                                ID_KSK_DV = a.ID_KSK_DV,
                                ID_LyDo = (int)a.ID_LyDo
                            }).Where(x => x.ID_LyDo == item.ID_LyDo).Count();
+
+                var resData = (from a in _context.KSK_DauVao.Where(x => x.NgayKham >= begind && x.NgayKham <= end)
+                               select new KSK_DauVao
+                               {
+                                   ID_KSK_DV = a.ID_KSK_DV,
+                                   ID_LyDo = (int) a.ID_LyDo
+                               }).Where(x => x.ID_LyDo == item.ID_LyDo).Count();
                 if (res > 0)
                 {
                     Count.Add(Convert.ToInt32(res));
@@ -150,6 +157,25 @@ namespace QuanLyYTe.Controllers
             }
             data.Add(Name);
             data.Add(Count);
+            return data;
+        }
+
+        private List<object> NhomMauList()
+        {
+            var data = new List<object>();
+
+            var nhomMau = _context.NhomMau.ToList();
+
+            foreach (var item in nhomMau)
+            {
+                var res = (from a in _context.SoTheoDoi_KSK
+                           select new SoTheoDoi_KSK
+                           {
+                               ID_STD = a.ID_STD,
+                               ID_NhomMau = (int?)a.ID_NhomMau ?? default,
+                           }).Where(x => x.ID_NhomMau == item.ID_NhomMau).Count();
+            }
+
             return data;
         }
     }
