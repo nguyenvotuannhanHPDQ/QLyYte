@@ -513,7 +513,7 @@ namespace QuanLyYTe.Controllers
                                               ID_PhongBan = pb.ID_PhongBan,
                                               TenPhongBan = pb.TenPhongBan,
                                               GhiChu = ""
-                                          }).SingleOrDefaultAsync();
+                                          }).FirstOrDefaultAsync();
 
 
                     tgden = employees?.Where(x => x.L_UID == e.L_UID).FirstOrDefault();
