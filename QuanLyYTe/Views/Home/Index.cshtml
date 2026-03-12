@@ -152,7 +152,7 @@
                                     padding: 1% 2% 2% 2%;
                                     text-align: center;">
                                     <b>
-                                        THỐNG KẾ SỐ LƯỢT CẤP PHÁT THUỐC THEO BP/NM
+                                        THỐNG KÊ SỐ LƯỢT CẤP PHÁT THUỐC THEO BP/NM
                                     </b>
                                 </h6>
                                 <div class="card-body">
@@ -207,7 +207,7 @@
                                     padding: 1% 2% 2% 2%;
                                     text-align: center;">
                                     <b>
-                                        THỐNG KẾ NHÓM MÁU CBNV
+                                        THỐNG KÊ NHÓM MÁU CBNV
                                     </b>
                                 </h6>
                                 <div class="card-body" style=" height: 400px;">
@@ -216,23 +216,25 @@
 
                                     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                                     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+                                    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1"></script>
+                                    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
                                     <script type="text/javascript">
+                                        Chart.register(ChartDataLabels);
+
                                         $(document).ready(function () {
                                             $.ajax({
                                                 type: "POST",
                                                 url: "/Home/Blood_group",
-                                                data: "",
-                                                contextType: "application/json; charset=utf8",
                                                 dataType: "json",
                                                 success: OnSuccess,
                                             });
 
                                             function OnSuccess(data) {
-                                                const TK_NM = document.getElementById('TK_NM')
-                                                var _data = data;
-                                                var _Name = _data[0];
+                                                const TK_NM = document.getElementById('TK_NM');
+                                                var _Name = data[0];
+                                                var _Count = data[1];
 
-                                                var _Count = _data[1];
                                                 new Chart(TK_NM, {
                                                     type: 'pie',
                                                     data: {
@@ -242,13 +244,24 @@
                                                             data: _Count,
                                                             borderWidth: 1
                                                         }]
+                                                    },
+                                                    options: {
+                                                        plugins: {
+                                                            datalabels: {
+                                                                formatter: function (value, context) {
+                                                                    return _Name[context.dataIndex] + ': ' + value;
+                                                                },
+                                                                color: '#000',
+                                                                anchor: 'end',
+                                                                align: 'outside'
+                                                            }
+                                                        }
                                                     }
                                                 });
                                             }
                                         });
-
-
                                     </script>
+
                                 </div>
                             </div>
 
@@ -263,7 +276,7 @@
                                     padding: 1% 2% 2% 2%;
                                     text-align: center;">
                                     <b>
-                                        THỐNG KẾ KẾT QUẢ KHÁM SỨC KHỎE TUYỂN DỤNG
+                                        THỐNG KÊ KẾT QUẢ KHÁM SỨC KHỎE TUYỂN DỤNG TỪ @(((DateTime)ViewBag.BeginDate).ToString("dd-MM-yyyy")) ĐẾN @(((DateTime)ViewBag.EndDate).ToString("dd-MM-yyyy"))
                                     </b>
                                 </h6>
                                 <div class="card-body" style=" height: 400px;">
