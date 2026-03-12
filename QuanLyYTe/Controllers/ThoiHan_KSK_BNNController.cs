@@ -11,6 +11,7 @@ using DocumentFormat.OpenXml.Office2010.Excel;
 using System.Globalization;
 using Microsoft.Data.SqlClient;
 using DocumentFormat.OpenXml.Wordprocessing;
+using DocumentFormat.OpenXml;
 
 namespace QuanLyYTe.Controllers
 {
@@ -76,14 +77,18 @@ namespace QuanLyYTe.Controllers
 
                              }).ToListAsync();
 
-            if (Check_q.ID_Quyen == 1 && Check_q.ID_Quyen == 2)
+            if (Check_q.ID_Quyen == 1 || Check_q.ID_Quyen == 2)
             {
-                res = res.Where(x => x.ID_PhongBan == IDPhongBan).ToList();
+                if (IDPhongBan.HasValue)
+                {
+                    res = res.Where(x => x.ID_PhongBan == IDPhongBan.Value).ToList();
+                }
             }
             else
             {
                 res = res.Where(x => x.ID_PhongBan == Check_q.ID_PhongBan).ToList();
             }
+
             if (begind!=null && endd != null)
             {
                 res = res.Where(x => x.NgayLenDanhSach >= begind && x.NgayLenDanhSach <= endd).ToList();
@@ -407,13 +412,7 @@ namespace QuanLyYTe.Controllers
                                     TempData["msgSuccess"] = "<script>alert('Vui lòng cập nhật dữ liệu nhân viên: " + MNV + "');</script>";
                                     return RedirectToAction("Index", "KSK_ChuyenViTri");
                                 }
-                                /*string GioiTinh = serviceDetails.Rows[i][3].ToString().Trim();
-                                var check_gioitinh = _context.GioiTinh.Where(x => x.TenGioiTinh == GioiTinh).FirstOrDefault();
-                                if (check_gioitinh == null)
-                                {
-                                    TempData["msgSuccess"] = "<script>alert('Vui lòng kiểm tra tên giới tính. Nhân viên: " + HoVaTen + "');</script>";
-                                    return RedirectToAction("Index", "KSK_TuyenDung");
-                                }*/
+                                
                                 string ngaytrinhky = serviceDetails.Rows[i][3].ToString();
                                 DateTime ngay = DateTime.ParseExact(ngaytrinhky, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None);
                                 string xqtim = serviceDetails.Rows[i][4].ToString().Trim();
@@ -421,67 +420,83 @@ namespace QuanLyYTe.Controllers
                                 string xqCSTL = serviceDetails.Rows[i][6].ToString().Trim();
                                 string doThinhLuc = serviceDetails.Rows[i][7].ToString().Trim();
                                 string doNhanAp = serviceDetails.Rows[i][8].ToString().Trim();
-                                string dinhLuong = serviceDetails.Rows[i][9].ToString().Trim();
+
+                                string dinhLuongStr = serviceDetails.Rows[i][9].ToString().Trim();
+                                dinhLuongStr = dinhLuongStr.Replace(",", ".");
+                                float dinhLuong = 0;
+                                float.TryParse(dinhLuongStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out dinhLuong);
+
+
+
                                 string doDienTim = serviceDetails.Rows[i][10].ToString().Trim();
-                                string TGMauChay = serviceDetails.Rows[i][11].ToString().Trim();
-                                string TGMauDong = serviceDetails.Rows[i][12].ToString().Trim();
+
+                                string TGMauChayStr = serviceDetails.Rows[i][11].ToString().Trim();
+                                TGMauChayStr = TGMauChayStr.Replace(",", ".");
+                                float TGMauChay = 0;
+                                float.TryParse(TGMauChayStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out TGMauChay);
+
+                                string TGMauDongStr = serviceDetails.Rows[i][12].ToString().Trim();
+                                TGMauDongStr = TGMauDongStr.Replace(",", ".");
+                                float TGMauDong = 0;
+                                float.TryParse(TGMauDongStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out TGMauDong);
+
                                 string testHCV = serviceDetails.Rows[i][13].ToString().Trim();
-                                string sGOT = serviceDetails.Rows[i][14].ToString().Trim();
-                                string sGPT = serviceDetails.Rows[i][15].ToString().Trim();
+
+                                string sGOTStr = serviceDetails.Rows[i][14].ToString().Trim();
+                                sGOTStr = sGOTStr.Replace(",", ".");
+                                float sGOT = 0;
+                                float.TryParse(sGOTStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out sGOT);
+
+                                string sGPTStr = serviceDetails.Rows[i][15].ToString().Trim();
+                                sGPTStr = sGPTStr.Replace(",", ".");
+                                float sGPT = 0;
+                                float.TryParse(sGPTStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out sGPT);
+
                                 string nuocTieu = serviceDetails.Rows[i][16].ToString().Trim();
                                 string HIV = serviceDetails.Rows[i][17].ToString().Trim();
-                                string doPHda = serviceDetails.Rows[i][18].ToString().Trim();
+
+                                string doPHdaStr = serviceDetails.Rows[i][18].ToString().Trim();
+                                doPHdaStr = doPHdaStr.Replace(",", ".");
+                                float doPHda = 0;
+                                float.TryParse(doPHdaStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out doPHda);
+
                                 string doLieuSinhHoc = serviceDetails.Rows[i][19].ToString().Trim();
                                 string KL = serviceDetails.Rows[i][20].ToString().Trim();
                                 string ghiChu = serviceDetails.Rows[i][21].ToString().Trim();
 
-                                // mai lam
-                                var Check_bnn = _context.KSK_BenhNgheNghiep.Where(x => x.NgayLenDanhSach == ngay && x.ID_PhongBan==check_nv.ID_PhongBan && x.ID_NV==check_nv.ID_NV).FirstOrDefault();
-                                if (Check_bnn != null)
-                                {
+                                //var Check_bnn = _context.KSK_BenhNgheNghiep.Where(x => x.ID_PhongBan == check_nv.ID_PhongBan && x.ID_NV == check_nv.ID_NV).FirstOrDefault();
 
-                                    SqlParameter[] sqlParameters = new SqlParameter[]
-                                    {
-                                    new SqlParameter("@ID_KSK_BNN", SqlDbType.Int) { Value =Check_bnn.ID_KSK_BNN },
-                                    new SqlParameter("@ID_NV", SqlDbType.Int) { Value = check_nv.ID_NV },
-                                    new SqlParameter("@ID_ViTriLaoDong", SqlDbType.Int) { Value =Check_bnn.ID_ViTriLaoDong },
-                                    new SqlParameter("@NgayLenDanhSach", SqlDbType.Date) { Value = Check_bnn.NgayLenDanhSach ?? (object)DBNull.Value },
-                                    new SqlParameter("@XQuangTimPhoi", SqlDbType.NVarChar) { Value = xqtim ?? (object)DBNull.Value },
-                                    new SqlParameter("@DoCNHoHap", SqlDbType.NVarChar) { Value = hohap ?? (object)DBNull.Value },
-                                    new SqlParameter("@XQuangCSTLThangNghien", SqlDbType.NVarChar) { Value = xqCSTL ?? (object)DBNull.Value },
-                                    new SqlParameter("@DoThinhLuc", SqlDbType.NVarChar) { Value = doThinhLuc ?? (object)DBNull.Value },
-                                    new SqlParameter("@DoNhanAp", SqlDbType.NVarChar) { Value = doNhanAp ?? (object)DBNull.Value },
-                                    new SqlParameter("@DinhLuongHbCo", SqlDbType.Float) { Value = dinhLuong ?? (object)DBNull.Value },
-                                    new SqlParameter("@DoDienTim", SqlDbType.NVarChar) { Value = doDienTim ?? (object)DBNull.Value },
-                                    new SqlParameter("@ThoiGianMauChay", SqlDbType.Float) { Value = TGMauChay ?? (object)DBNull.Value },
-                                    new SqlParameter("@ThoiGianMauDong", SqlDbType.Float) { Value = TGMauDong ?? (object)DBNull.Value },
-                                    new SqlParameter("@TestHCV_HBsAg", SqlDbType.NVarChar) { Value = testHCV?? (object)DBNull.Value },
-                                    new SqlParameter("@SGOT", SqlDbType.Float) { Value = sGOT ?? (object)DBNull.Value },
-                                    new SqlParameter("@SGPT", SqlDbType.Float) { Value = sGPT ?? (object)DBNull.Value },
-                                    new SqlParameter("@NuocTieu", SqlDbType.NVarChar) { Value = nuocTieu ?? (object)DBNull.Value },
-                                    new SqlParameter("@HIV", SqlDbType.NVarChar) { Value = HIV ?? (object)DBNull.Value },
-                                    new SqlParameter("@DoPHda", SqlDbType.Float) { Value = doPHda ?? (object)DBNull.Value },
-                                    new SqlParameter("@DoLieuSinhHoc", SqlDbType.NVarChar) { Value = doLieuSinhHoc ?? (object)DBNull.Value },
-                                    new SqlParameter("@KetLuan", SqlDbType.NVarChar) { Value = KL ?? (object)DBNull.Value },
-                                    new SqlParameter("@GhiChu", SqlDbType.NVarChar) { Value = ghiChu ?? (object)DBNull.Value }
-                                    };
-
-                                    _context.Database.ExecuteSqlRaw(
-                                        "EXEC KSK_BenhNgheNghiep_update @ID_KSK_BNN, @ID_NV, @ID_ViTriLaoDong, @NgayLenDanhSach, @XQuangTimPhoi, " +
-                                        "@DoCNHoHap, @XQuangCSTLThangNghien, @DoThinhLuc, @DoNhanAp, @DinhLuongHbCo, @DoDienTim, " +
-                                        "@ThoiGianMauChay, @ThoiGianMauDong, @TestHCV_HBsAg, @SGOT, @SGPT, @NuocTieu, @HIV, " +
-                                        "@DoPHda, @DoLieuSinhHoc, @KetLuan, @GhiChu",
-                                        sqlParameters
-                                    );
-                                }
-                                else
+                                var data = new KSK_BenhNgheNghiep()
                                 {
-                                    TempData["msgSuccess"] = "<script>alert('Vui lòng kiểm tra ngày trình ký đã đúng chưa. Nhân viên: " + HoVaTen + "');</script>";
-                                    return RedirectToAction("Index", "ThoiHan_KSK_BNN");
-                                }
+                                    ID_NV = check_nv.ID_NV,
+                                    ID_PhongBan = (int)check_nv.ID_PhongBan,
+                                    ID_ViTriLaoDong = (int) check_nv.ID_ViTri,
+                                    NgayLenDanhSach = DateTime.UtcNow.Date,
+                                    GhiChu = ghiChu,
+                                    ID_PheDuyet = 0,
+                                    XQuangTimPhoi = xqtim,
+                                    DoCNHoHap = hohap,
+                                    XQuangCSTLThangNghien = xqCSTL,
+                                    DoThinhLuc = doThinhLuc,
+                                    DoNhanAp = doNhanAp,
+                                    DinhLuongHbCo = dinhLuong,
+                                    DoDienTim = doDienTim,
+                                    ThoiGianMauChay = TGMauChay,
+                                    ThoiGianMauDong = TGMauDong,
+                                    TestHCV_HBsAg = testHCV,
+                                    SGOT = sGOT,
+                                    SGPT = sGPT,
+                                    NuocTieu = nuocTieu,
+                                    HIV = HIV,
+                                    DoPHda = doPHda,
+                                    DoLieuSinhHoc = doLieuSinhHoc,
+                                    KetLuan = KL
+                                };
+
+                                _context.KSK_BenhNgheNghiep.Add(data);
+                                _context.SaveChanges();
+
                             }
-
-
                         }
                     }
                 }

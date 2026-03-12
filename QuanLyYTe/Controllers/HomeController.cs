@@ -17,6 +17,18 @@ namespace QuanLyYTe.Controllers
 
         public IActionResult Index()
         {
+            DateTime Now = DateTime.Now;
+            DateTime begind = new DateTime(Now.Year, Now.Month, 1);
+            DateTime end = begind.AddMonths(1).AddDays(-1);
+
+            ViewBag.BeginDate = begind;
+            ViewBag.EndDate = end;
+
+            return View();
+        }
+
+        public IActionResult Canva()
+        {
             return View();
         }
 
@@ -68,7 +80,6 @@ namespace QuanLyYTe.Controllers
             DateTime begind = new DateTime(Now.Year, Now.Month, 1);
             DateTime end = begind.AddMonths(1).AddDays(-1);
 
-
             List<Object> data = new List<Object>();
             List<string> Name = new List<string>();
             List<int> Count = new List<int>();
@@ -105,10 +116,9 @@ namespace QuanLyYTe.Controllers
             List<string> Name = new List<string>();
             List<int> Count = new List<int>();
             var List = _context.LyDoKhongDat.Where(x=>x.LoaiLyDo == 0).ToList();
-
             foreach (var item in List)
             {
-                var res = (from a in _context.KSK_DauVao.Where(x=>x.NgayKham >= begind && x.NgayKham <= end)
+                var res = (from a in _context.KSK_DauVao
                            select new KSK_DauVao
                            {
                                ID_KSK_DV = a.ID_KSK_DV,
