@@ -12,6 +12,7 @@ using System.Globalization;
 using Microsoft.Data.SqlClient;
 using DocumentFormat.OpenXml.Wordprocessing;
 using DocumentFormat.OpenXml;
+using System.Text.Encodings.Web;
 
 namespace QuanLyYTe.Controllers
 {
@@ -504,7 +505,20 @@ namespace QuanLyYTe.Controllers
             }
             catch (Exception e)
             {
-                TempData["msgError"] = "<script>alert('Import thất bại');</script>";
+                string errorMessage = e.Message;
+
+                // InnerException
+                if (e.InnerException != null)
+                {
+                    errorMessage += " | Chi tiết lỗi: " + e.InnerException.Message;
+                }
+
+                var message = JavaScriptEncoder.Default
+                                .Encode(errorMessage)
+                                .Replace("\n", " ")
+                                .Replace("\r", " ");
+
+                TempData["msgError"] = $"<script>alert('Import thất bại: {message}');</script>";
             }
 
             return RedirectToAction("Index", "ThoiHan_KSK_BNN");
